@@ -14,8 +14,8 @@ from pyfzf.pyfzf import FzfPrompt
 
 
 def main(args: List[str]) -> str:
-    org = args[1]
-    projects_root = args[2].rstrip("/")
+    projects_root = args[1].rstrip("/")
+    org = args[2]
     dirs = [f.name for f in os.scandir(projects_root) if f.is_dir()]
 
     # FIXME: How to call boss in the main function?
@@ -47,7 +47,7 @@ def main(args: List[str]) -> str:
 def handle_result(
     args: List[str], answer: str, target_window_id: int, boss: Boss
 ) -> None:
-    projects_root = args[2].rstrip("/")
+    projects_root = args[1].rstrip("/")
 
     if not answer:
         return
