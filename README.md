@@ -11,9 +11,10 @@ create new sesssions as well.
 
 ```
 git clone git@github.com:taylorzr/kitty-meow.git ~/.config/kitty/meow
+pip install pyfzf
 ```
 
-Depends on [fzf](https://github.com/junegunn/fzf/), and [jq](https://github.com/stedolan/jq) as well.
+Depends on binaries [fzf](https://github.com/junegunn/fzf/), and [jq](https://github.com/stedolan/jq) as well.
 
 
 # Configuration
@@ -33,7 +34,7 @@ map <keys> kitten meow/load_project.py <directory where you put your repos> <git
 For example, I use:
 ```
 # ~/.config/kitty/kitty.conf
-map ctrl+n kitten meow/load_project.py /Users/taylorzr/code/ my_cool_org
+map ctrl+n kitten meow/load_project.py $HOME/code/ my_cool_org
 ```
 
 

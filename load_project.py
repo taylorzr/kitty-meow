@@ -7,6 +7,7 @@ from typing import List
 from kitty.boss import Boss
 
 # fmt: off
+# FIXME: mac specific path, dont seem to need this on linux
 sys.path.insert(0, "/opt/homebrew/lib/python3.10/site-packages")
 from pyfzf.pyfzf import FzfPrompt
 
@@ -30,14 +31,16 @@ def main(args: List[str]) -> str:
 
     non_open_projects = list(set(dirs) - set(tabs))
 
+    bin_path = os.getenv('BIN_PATH', '')
+
     # TODO: Cache github results, can i refresh async somehow?
     # Or can I have a binding that forces refresn?
     # Or just bg spawn a function to get and write all repos to cache every time run
-    fzf = FzfPrompt("/opt/homebrew/bin/fzf")
+    fzf = FzfPrompt(f"{bin_path}fzf")
 
     selection = fzf.prompt(
         non_open_projects,
-        f"--bind 'ctrl-g:reload(/opt/homebrew/opt/python@3.10/libexec/bin/python ~/.config/kitty/meow/get_all_repos.py {org}),ctrl-r:reload(eval ls -1 ~/code)'",
+        f"--bind 'ctrl-g:reload({bin_path}python ~/.config/kitty/meow/get_all_repos.py {org}),ctrl-r:reload(eval ls -1 ~/code)'",
     )
 
     if len(selection) > 0:
