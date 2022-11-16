@@ -31,7 +31,7 @@ def main(args: List[str]) -> str:
 
     non_open_projects = list(set(dirs) - set(tabs))
 
-    bin_path = os.getenv('BIN_PATH', '')
+    bin_path = os.getenv("BIN_PATH", "")
 
     # TODO: Cache github results, can i refresh async somehow?
     # Or can I have a binding that forces refresn?
@@ -40,7 +40,7 @@ def main(args: List[str]) -> str:
 
     selection = fzf.prompt(
         non_open_projects,
-        f"--bind 'ctrl-g:reload({bin_path}python ~/.config/kitty/meow/get_all_repos.py {org}),ctrl-r:reload(eval ls -1 ~/code)'",
+        f"--bind 'ctrl-g:reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {org}),ctrl-r:reload(eval ls -1 ~/code)'",
     )
 
     if len(selection) > 0:
