@@ -99,7 +99,7 @@ def handle_result(
         return
 
     path, *rest = answer.split()
-    dir = os.path.dirname(path)
+    dir = os.path.basename(path)
 
     if len(rest) == 1:
         ssh_url = rest[0]
