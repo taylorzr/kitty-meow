@@ -37,7 +37,7 @@ map ctrl+- goto_tab -1
 
 Create a mapping for loading projects. The pattern is:
 
-```sh
+```conf
 # ~/.config/kitty/kitty.conf
 
 map ctrl+space kitten meow/load_project.py --dir $HOME/code/ ---org <github_org>
@@ -50,7 +50,7 @@ map ctrl+space kitten meow/load_project.py --dir $HOME/code/ ---org <github_org>
 
 For example, I use:
 
-```sh
+```conf
 # ~/.config/kitty/kitty.conf
 
 map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --dir $HOME --dir $HOME/.config/kitty/meow --org my_cool_org
@@ -59,7 +59,7 @@ map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --dir $HOME --dir $
 On mac, paths are goofy. You proabably need to set env BIN_PATH as well. This should be the dir
 containing and fzf.
 
-```sh
+```conf
 # ~/.config/kitty/kitty.conf
 
 env BIN_PATH=/opt/homebrew/bin/
@@ -70,13 +70,13 @@ env BIN_PATH=/opt/homebrew/bin/
 You need to create a github token, and set it as env GITHUB_TOKEN. Because I commit kitty.conf to my
 dotfiles, I put any secrets in an extra conf file:
 
-```sh
+```conf
 # ~/.config/kitty/kitty.conf
 
 include ./dont_commit_me.conf
 ```
 
-```sh
+```conf
 # ~/.config/kitty/dont_commit_me.conf
 
 env GITHUB_TOKEN=<github_token>
