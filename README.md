@@ -6,6 +6,8 @@ projects, and load them either from local directories or github.
 If you've used tmux sessions. This is similar to switching between sessions, but allows you to
 create new sessions as well.
 
+![Meow Screenshot](screenshot.png)
+
 ## Installation
 
 ```sh
