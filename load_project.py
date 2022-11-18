@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import subprocess
@@ -9,15 +10,45 @@ from kitty.boss import Boss
 # fmt: off
 # FIXME: mac specific path, dont seem to need this on linux
 sys.path.insert(0, "/opt/homebrew/lib/python3.10/site-packages")
+# fmt:on
+import argparse
+
 from pyfzf.pyfzf import FzfPrompt
 
-# fmt:on
+parser = argparse.ArgumentParser(description="meow")
 
+parser.add_argument(
+    "--dir",
+    dest="dirs",
+    action="append",
+    default=[],
+    # required=True,
+    help="direcories to find projects",
+)
+
+parser.add_argument(
+    "--org",
+    dest="orgs",
+    action="append",
+    default=[],
+    help="look for repos in these github orgs",
+)
 
 def main(args: List[str]) -> str:
-    projects_root = args[1].rstrip("/")
-    org = args[2]
-    dirs = [f.name for f in os.scandir(projects_root) if f.is_dir()]
+    opts = parser.parse_args(args[1:])
+    org = opts.orgs[0]
+
+    projects = []
+    for dir in opts.dirs:
+        if dir.endswith("/"):
+            for f in os.scandir(dir):
+                if f.is_dir():
+                    projects.append(f.path)
+        else:
+            projects.append(dir)
+
+    # from kittens.tui.loop import debug
+    # debug(projects)
 
     # FIXME: How to call boss in the main function?
     # data = boss.call_remote_control(None, ("ls",))
@@ -27,9 +58,7 @@ def main(args: List[str]) -> str:
     data = json.loads(stuff)
 
     # first os window, how to handle multiple os windows?
-    tabs = [tab.title for tab in data[0]]
-
-    non_open_projects = list(set(dirs) - set(tabs))
+    tabs = [tab["title"] for tab in data[0]["tabs"]]
 
     bin_path = os.getenv("BIN_PATH", "")
 
@@ -38,9 +67,18 @@ def main(args: List[str]) -> str:
     # Or just bg spawn a function to get and write all repos to cache every time run
     fzf = FzfPrompt(f"{bin_path}fzf")
 
+    # NOTE: Can't use ' char within any of the binds
+    # TODO: bind ctrl-x to kill a tab using fzf execute
+    # ^ did this, but need to fix reload tabs afterwards
+    # or maybe make a separate command for that?
+    binds = [
+        f'ctrl-r:change-prompt(local> )+reload(ls -d1 {" ".join(projects)} | sed "s|{os.path.expanduser("~")}|~|")',
+        f"ctrl-g:change-prompt(github> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {org})",
+        'ctrl-x:execute(kitty @ close-tab --match=title:{})+reload(kitty @ ls | jq -r ".[0].tabs | map(.title) | .[]")',
+    ]
     selection = fzf.prompt(
-        non_open_projects,
-        f"--bind 'ctrl-g:reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {org}),ctrl-r:reload(eval ls -1 ~/code)'",
+        tabs,
+        f"--prompt 'tabs> ' --bind '{','.join(binds)}'",
     )
 
     if len(selection) > 0:
@@ -50,19 +88,35 @@ def main(args: List[str]) -> str:
 def handle_result(
     args: List[str], answer: str, target_window_id: int, boss: Boss
 ) -> None:
-    projects_root = args[1].rstrip("/")
+    opts = parser.parse_args(args[1:])
+
+    # This is the dir we clone repos into, for me it's not a big deal if they get cloned to the
+    # first dir. But some people might want to pick which dir to clone to? How could that be
+    # supported?
+    projects_root = opts.dirs[0]
 
     if not answer:
         return
 
-    dir, *rest = answer.split()
+    path, *rest = answer.split()
+    dir = os.path.dirname(path)
 
     if len(rest) == 1:
         ssh_url = rest[0]
         print(f"cloning into {dir}...")
-        subprocess.run(["git", "clone", ssh_url, f"{projects_root}/{dir}"])
+        path = f"{projects_root}/{dir}"
+        subprocess.run(["git", "clone", ssh_url, path])
     elif len(rest) != 0:
         print("something bad happenend :(")
+
+
+    stuff = boss.call_remote_control(None, ("ls",))
+    data = json.loads(stuff)
+
+    for tab in data[0]["tabs"]:
+        if tab["title"] == dir:
+            boss.call_remote_control(None, ("focus-tab", "--match", f"title:{dir}"))
+            return
 
     window = boss.call_remote_control(
         None,
@@ -73,7 +127,7 @@ def handle_result(
             "--tab-title",
             dir,
             "--cwd",
-            f"{projects_root}/{dir}",
+            f"{path}",
             "zsh",
             "-lic",
             "nvim",
