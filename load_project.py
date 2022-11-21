@@ -7,14 +7,6 @@ from typing import List
 
 from kitty.boss import Boss
 
-# fmt: off
-# FIXME: mac specific path, dont seem to need this on linux
-sys.path.insert(0, "/opt/homebrew/lib/python3.10/site-packages")
-# fmt:on
-import argparse
-
-from pyfzf.pyfzf import FzfPrompt
-
 parser = argparse.ArgumentParser(description="meow")
 
 parser.add_argument(
@@ -33,6 +25,7 @@ parser.add_argument(
     default=[],
     help="look for repos in these github orgs",
 )
+
 
 def main(args: List[str]) -> str:
     opts = parser.parse_args(args[1:])
@@ -57,15 +50,11 @@ def main(args: List[str]) -> str:
     ).stdout.strip("\n")
     data = json.loads(stuff)
 
-    # first os window, how to handle multiple os windows?
-    tabs = [tab["title"] for tab in data[0]["tabs"]]
-
     bin_path = os.getenv("BIN_PATH", "")
 
     # TODO: Cache github results, can i refresh async somehow?
-    # Or can I have a binding that forces refresn?
+    # Or can I have a binding that forces refresh?
     # Or just bg spawn a function to get and write all repos to cache every time run
-    fzf = FzfPrompt(f"{bin_path}fzf")
 
     # NOTE: Can't use ' char within any of the binds
     # TODO: bind ctrl-x to kill a tab using fzf execute
@@ -76,10 +65,14 @@ def main(args: List[str]) -> str:
         f"ctrl-g:change-prompt(github> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {org})",
         'ctrl-x:execute(kitty @ close-tab --match=title:{})+reload(kitty @ ls | jq -r ".[0].tabs | map(.title) | .[]")',
     ]
-    selection = fzf.prompt(
-        tabs,
-        f"--prompt 'tabs> ' --bind '{','.join(binds)}'",
-    )
+
+    args = [f"{bin_path}fzf", "--prompt=tabs> ", f"--bind={','.join(binds)}"]
+
+    tabs = [tab["title"] for tab in data[0]["tabs"]]
+
+    p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    out = p.communicate(input="\n".join(tabs).encode())[0]
+    selection = out.decode().strip().encode()
 
     if len(selection) > 0:
         return selection[0]
@@ -108,7 +101,6 @@ def handle_result(
         subprocess.run(["git", "clone", ssh_url, path])
     elif len(rest) != 0:
         print("something bad happenend :(")
-
 
     stuff = boss.call_remote_control(None, ("ls",))
     data = json.loads(stuff)

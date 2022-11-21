@@ -12,7 +12,6 @@ create new sessions as well.
 
 ```sh
 git clone git@github.com:taylorzr/kitty-meow.git ~/.config/kitty/meow
-pip install pyfzf
 ```
 
 Depends on [fzf](https://github.com/junegunn/fzf/) and [jq](https://github.com/stedolan/jq).
