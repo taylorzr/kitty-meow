@@ -71,10 +71,12 @@ def main(args: List[str]) -> str:
 
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out = p.communicate(input="\n".join(tabs).encode())[0]
-    selection = out.decode().strip().encode()
+    selection = out.decode().strip()
 
-    if len(selection) > 0:
-        return selection[0]
+    # from kittens.tui.loop import debug
+    # debug(selection)
+
+    return selection
 
 
 def handle_result(
@@ -120,7 +122,8 @@ def handle_result(
             "--cwd",
             f"{path}",
             "zsh",
-            "-lic",
+            "--interactive",
+            "-c",
             "nvim",
         ),
     )
