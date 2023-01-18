@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 from typing import List
+from datetime import datetime
 
 from kitty.boss import Boss
 
@@ -105,6 +106,10 @@ def handle_result(
 
     stuff = boss.call_remote_control(None, ("ls",))
     data = json.loads(stuff)
+
+    with open(f"{os.path.expanduser('~')}/.config/kitty/meow/history", "a") as history:
+        history.write(f"{dir} {datetime.now().isoformat()}\n")
+        history.close()
 
     for tab in data[0]["tabs"]:
         if tab["title"] == dir:

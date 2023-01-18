@@ -20,7 +20,7 @@ Depends on [fzf](https://github.com/junegunn/fzf/) and [jq](https://github.com/s
 
 You'll need to:
 
-* create mapping for loading projects
+* create mappings
 * set your github token as env
 
 For example:
@@ -32,6 +32,7 @@ env GITHUB_TOKEN=<github_token>
 env BIN_PATH=/opt/homebrew/bin/ # probably only needed on macs
 map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --org my_cool_org
 map ctrl+- goto_tab -1
+map ctrl+shift+x kitten meow/kill_old_projects.py
 ```
 
 ### kitty mapping
