@@ -113,7 +113,7 @@ def handle_result(
 
     for tab in data[0]["tabs"]:
         if tab["title"] == dir:
-            boss.call_remote_control(None, ("focus-tab", "--match", f"title:{dir}"))
+            boss.call_remote_control(None, ("focus-tab", "--match", f"title:^{dir}$"))
             return
 
     window = boss.call_remote_control(
