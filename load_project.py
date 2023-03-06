@@ -59,10 +59,6 @@ def main(args: List[str]) -> str:
 
     bin_path = os.getenv("BIN_PATH", "")
 
-    # TODO: Cache github results, can i refresh async somehow?
-    # Or can I have a binding that forces refresh?
-    # Or just bg spawn a function to get and write all repos to cache every time run
-
     default_prompt = "tabs&projects"
     # NOTE: Can't use ' char within any of the binds
     binds = [

@@ -1,61 +1,21 @@
 import os
 import sys
-from sys import stdout
 
-import requests
+import github
 
-# TODO: Also get repos for current user and merge them together with any org
-token = os.getenv("GITHUB_TOKEN")
-
-query = """
-query($org: String!, $cursor: String) {
-    organization(login: $org) {
-        repositories(first: 100, after: $cursor) {
-            nodes {
-                name
-                sshUrl
-                }
-            pageInfo {
-                endCursor
-                startCursor
-                hasNextPage
-            }
-        }
-    }
-}
-"""
-
-
-def run_query(
-    query, org, cursor=None
-):
-    request = requests.post(
-        "https://api.github.com/graphql",
-        json={"query": query, "variables": {"org": org, "cursor": cursor}},
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    if request.status_code == 200:
-        return request.json()
-    else:
-        raise Exception(
-            "Query failed to run by returning code of {}. {}".format(
-                request.status_code, query
-            )
-        )
-
+# TODO: multi-org
 
 org = sys.argv[1]
-cursor = None
-repos = []
+cache = f"{os.path.expanduser('~')}/.config/kitty/meow/cache_{org}"
 
-while True:
-    result = run_query(query, org=org, cursor=cursor)
+# TODO: provide a way to refresh cache, but maybe just do it from command line
+# cause if we do it here, you have to wait for the thing to finish
+# if you select an item while still loading, the cache won't be written
+try:
+    with open(cache, "r") as file:
+        print(file.read())
+except FileNotFoundError:
+    repos = github.get_all_repos(org)
 
-    for repo in result["data"]["organization"]["repositories"]["nodes"]:
-        print(repo["name"], repo["sshUrl"])
-    stdout.flush()  # so that results show in fzf sooner
-
-    pageInfo = result["data"]["organization"]["repositories"]["pageInfo"]
-    if not pageInfo["hasNextPage"]:
-        break
-    cursor = pageInfo["endCursor"]
+    with open(cache, "w") as file:
+        file.write("\n".join(repos))

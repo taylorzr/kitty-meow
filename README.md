@@ -31,11 +31,14 @@ For example:
 env GITHUB_TOKEN=<github_token>
 env BIN_PATH=/opt/homebrew/bin/ # probably only needed on macs
 map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --org my_cool_org
+map ctrl+shift+g kitten meow/cache_all_repos.py --org fanduel
 map ctrl+- goto_tab -1
 map ctrl+shift+x kitten meow/kill_old_projects.py
 ```
 
-### kitty mapping
+### kitty mappings
+
+#### Loading projects
 
 Create a mapping for loading projects. The pattern is:
 
@@ -65,6 +68,15 @@ containing and fzf.
 # ~/.config/kitty/kitty.conf
 
 env BIN_PATH=/opt/homebrew/bin/
+```
+
+#### Caching github repositories
+
+Something about big github orgs, talk about how you don't have to use caching. If file doesn't exist
+it'll fetch from github everytime.
+
+```conf
+map ctrl+shift+g kitten meow/cache_all_repos.py --org fanduel
 ```
 
 ### github auth
@@ -103,13 +115,15 @@ On select
 * if the project is a local dir, meow creates a new tab
 * if the project is github, meow clones to the first --dir, and creates a new tab
 
+Call your cache mapping, e.g. ctrl-shift-g to refresh the github cache. This cache is never
+refreshed automatically, you must call it to update.
+
+
 ## TODO
 
 * record short video demo
 * get_all_repos should get curent users repos
 * get_all_repos should allow multiple orgs, or maybe even none
-* caching for big orgs
-  see what [this dude did](https://mattorb.com/fuzzy-find-a-github-repository-part-deux/)
 * configurable fzf bindings
 * selectable dir to clone to?
   * some people might use 1 dir for work and one for personal?
