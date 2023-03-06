@@ -90,9 +90,11 @@ You need to put env in your kitty config, not .zshrc. More about that [here](htt
 
 Call your mapping, e.g. ctrl-space
 
-* current tabs show initially
-* ctrl-r shows all your local directories
-* ctrl-g shows all your github repos
+* initially, tabs & local projects are listed
+* ctrl-t lists all tabs
+* ctrl-p lists all local projects
+* ctrl-g lists all github repos
+* ctrl-r returns to lists tabs & projects
 * enter selects an item
 
 On select
@@ -108,6 +110,6 @@ On select
 * get_all_repos should allow multiple orgs, or maybe even none
 * caching for big orgs
   see what [this dude did](https://mattorb.com/fuzzy-find-a-github-repository-part-deux/)
-* configurable fzf bindings (i.e. currently ctrl-r and ctrl-g)
+* configurable fzf bindings
 * selectable dir to clone to?
   * some people might use 1 dir for work and one for personal?

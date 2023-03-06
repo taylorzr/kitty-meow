@@ -2,8 +2,8 @@ import argparse
 import json
 import os
 import subprocess
-from typing import List
 from datetime import datetime
+from typing import List
 
 from kitty.boss import Boss
 
@@ -31,18 +31,6 @@ def main(args: List[str]) -> str:
     opts = parser.parse_args(args[1:])
     org = opts.orgs[0]
 
-    projects = []
-    for dir in opts.dirs:
-        if dir.endswith("/"):
-            for f in os.scandir(dir):
-                if f.is_dir():
-                    projects.append(f.path)
-        else:
-            projects.append(dir)
-
-    # from kittens.tui.loop import debug
-    # debug(projects)
-
     # FIXME: How to call boss in the main function?
     # data = boss.call_remote_control(None, ("ls",))
     stuff = subprocess.run(
@@ -50,28 +38,42 @@ def main(args: List[str]) -> str:
     ).stdout.strip("\n")
     data = json.loads(stuff)
 
+    tabs = [tab["title"] for tab in data[0]["tabs"]]
+    tabs_and_projects = [tab["title"] for tab in data[0]["tabs"]]
+    projects = []
+
+    for dir in opts.dirs:
+        if dir.endswith("/"):
+            for f in os.scandir(dir):
+                if f.is_dir():
+                    name = os.path.basename(f.path)
+                    pretty_path = f.path.replace(os.path.expanduser("~"), "~", 1)
+                    projects.append(pretty_path)
+                    if name not in tabs_and_projects:
+                        tabs_and_projects.append(pretty_path)
+        else:
+            name = os.path.basename(dir)
+            projects.append(dir)
+            if name not in tabs_and_projects:
+                tabs_and_projects.append(dir)
+
     bin_path = os.getenv("BIN_PATH", "")
 
     # TODO: Cache github results, can i refresh async somehow?
     # Or can I have a binding that forces refresh?
     # Or just bg spawn a function to get and write all repos to cache every time run
 
+    default_prompt = "tabs&projects"
     # NOTE: Can't use ' char within any of the binds
-    # TODO: bind ctrl-x to kill a tab using fzf execute
-    # ^ did this, but need to fix reload tabs afterwards
-    # or maybe make a separate command for that?
     binds = [
-        f'ctrl-r:change-prompt(local> )+reload(ls -d1 {" ".join(projects)} | sed "s|{os.path.expanduser("~")}|~|")',
+        'ctrl-r:change-prompt({0}> )+reload(print "{1}")'.format(default_prompt, "\n".join(tabs_and_projects)),
+        'ctrl-t:change-prompt(tabs> )+reload(print "{0}")'.format("\n".join(tabs)),
+        'ctrl-p:change-prompt(projects> )+reload(print "{0}")'.format("\n".join(projects)),
         f"ctrl-g:change-prompt(github> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {org})",
-        'ctrl-x:execute(kitty @ close-tab --match=title:{})+reload(kitty @ ls | jq -r ".[0].tabs | map(.title) | .[]")',
     ]
-
-    args = [f"{bin_path}fzf", "--prompt=tabs> ", f"--bind={','.join(binds)}"]
-
-    tabs = [tab["title"] for tab in data[0]["tabs"]]
-
+    args = [f"{bin_path}fzf", f"--prompt={default_prompt}> ", f"--bind={','.join(binds)}"]
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    out = p.communicate(input="\n".join(tabs).encode())[0]
+    out = p.communicate(input="\n".join(tabs_and_projects).encode())[0]
     selection = out.decode().strip()
 
     # from kittens.tui.loop import debug
