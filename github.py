@@ -3,7 +3,6 @@ import json
 from sys import stdout
 from urllib.request import Request, urlopen
 
-# TODO: Also get repos for current user and merge them together with any org
 token = os.getenv("GITHUB_TOKEN")
 
 org_query = """
