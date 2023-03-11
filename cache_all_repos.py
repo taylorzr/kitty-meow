@@ -1,13 +1,11 @@
 import github
 import argparse
 import os
-import sys
 from typing import List
 
-# TODO: don't depend on requests, just use stdlib
-sys.path.append("/opt/homebrew/lib/python3.10/site-packages")
 # TODO: can do relative import by file path?
-sys.path.append("~/.config/kitty/meow")
+# Need this so we can relative import github
+# sys.path.append("~/.config/kitty/meow")
 
 
 parser = argparse.ArgumentParser(description="meow")
