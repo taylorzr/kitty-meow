@@ -3,9 +3,6 @@ import argparse
 
 import github
 
-# TODO: multi-org
-
-
 parser = argparse.ArgumentParser(description="meow")
 
 parser.add_argument(

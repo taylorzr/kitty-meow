@@ -3,11 +3,6 @@ import argparse
 import os
 from typing import List
 
-# TODO: can do relative import by file path?
-# Need this so we can relative import github
-# sys.path.append("~/.config/kitty/meow")
-
-
 parser = argparse.ArgumentParser(description="meow")
 
 parser.add_argument(
