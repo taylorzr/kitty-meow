@@ -1,21 +1,42 @@
 import os
-import sys
+import argparse
 
 import github
 
 # TODO: multi-org
 
-org = sys.argv[1]
-cache = f"{os.path.expanduser('~')}/.config/kitty/meow/cache_{org}"
 
-# TODO: provide a way to refresh cache, but maybe just do it from command line
-# cause if we do it here, you have to wait for the thing to finish
-# if you select an item while still loading, the cache won't be written
-try:
-    with open(cache, "r") as file:
-        print(file.read())
-except FileNotFoundError:
-    repos = github.get_all_repos(org)
+parser = argparse.ArgumentParser(description="meow")
 
-    with open(cache, "w") as file:
-        file.write("\n".join(repos))
+parser.add_argument(
+    "--org",
+    dest="orgs",
+    action="append",
+    default=[],
+    help="look for repos in these github orgs",
+)
+
+parser.add_argument(
+    "--user",
+    dest="users",
+    action="append",
+    default=[],
+    help="look for repos for these github users",
+)
+
+
+def get_repos(login, type):
+    cache = f"{os.path.expanduser('~')}/.config/kitty/meow/cache_{login}"
+    try:
+        with open(cache, "r") as file:
+            print(file.read())
+    except FileNotFoundError:
+        github.get_repos(login, type)
+
+
+if __name__ == "__main__":
+    opts = parser.parse_args()
+    for user in opts.users:
+        get_repos(login=user, type="user")
+    for org in opts.orgs:
+        get_repos(login=org, type="organization")

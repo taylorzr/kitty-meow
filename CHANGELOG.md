@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - cache repos by org (TODO: refesh/invalidate cache?)
+- user flag added, org is now optional, and both can be repeated
 
 ## [0.0.4] - 2023-3-6
 

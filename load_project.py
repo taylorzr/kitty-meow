@@ -26,10 +26,17 @@ parser.add_argument(
     help="look for repos in these github orgs",
 )
 
+parser.add_argument(
+    "--user",
+    dest="users",
+    action="append",
+    default=[],
+    help="look for repos for these github users",
+)
+
 
 def main(args: List[str]) -> str:
     opts = parser.parse_args(args[1:])
-    org = opts.orgs[0]
 
     # FIXME: How to call boss in the main function?
     # data = boss.call_remote_control(None, ("ls",))
@@ -60,12 +67,17 @@ def main(args: List[str]) -> str:
     bin_path = os.getenv("BIN_PATH", "")
 
     default_prompt = "tabs&projects"
+    flags = []
+    for org in opts.orgs:
+        flags.append(f"--org {org}")
+    for user in opts.users:
+        flags.append(f"--user {user}")
     # NOTE: Can't use ' char within any of the binds
     binds = [
         'ctrl-r:change-prompt({0}> )+reload(print "{1}")'.format(default_prompt, "\n".join(tabs_and_projects)),
         'ctrl-t:change-prompt(tabs> )+reload(print "{0}")'.format("\n".join(tabs)),
         'ctrl-p:change-prompt(projects> )+reload(print "{0}")'.format("\n".join(projects)),
-        f"ctrl-g:change-prompt(github> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {org})",
+        f"ctrl-g:change-prompt(github> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)})",
     ]
     args = [f"{bin_path}fzf", f"--prompt={default_prompt}> ", f"--bind={','.join(binds)}"]
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
