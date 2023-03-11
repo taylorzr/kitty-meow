@@ -30,7 +30,7 @@ For example:
 
 env GITHUB_TOKEN=<github_token>
 env BIN_PATH=/opt/homebrew/bin/ # probably only needed on macs
-map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --org my_cool_org
+map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --user my_cool_self --org my_cool_org
 map ctrl+- goto_tab -1
 map ctrl+shift+x kitten meow/kill_old_projects.py
 ```
@@ -42,7 +42,7 @@ Create a mapping for loading projects. The pattern is:
 ```conf
 # ~/.config/kitty/kitty.conf
 
-map ctrl+space kitten meow/load_project.py --dir $HOME/code/ ---org <github_org>
+map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --user <you> --org <github_org>
 ```
 
 --dir can be provided multiple times.
@@ -106,8 +106,6 @@ On select
 ## TODO
 
 * record short video demo
-* get_all_repos should get curent users repos
-* get_all_repos should allow multiple orgs, or maybe even none
 * caching for big orgs
   see what [this dude did](https://mattorb.com/fuzzy-find-a-github-repository-part-deux/)
 * configurable fzf bindings

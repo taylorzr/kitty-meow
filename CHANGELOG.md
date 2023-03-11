@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- user flag added, org is now optional, and both can be repeated
+
 ## [0.0.4] - 2023-3-6
 
 ### Changed
