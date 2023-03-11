@@ -1,7 +1,7 @@
 import os
+import json
 from sys import stdout
-
-import requests
+from urllib.request import Request, urlopen
 
 # TODO: Also get repos for current user and merge them together with any org
 token = os.getenv("GITHUB_TOKEN")
@@ -46,19 +46,22 @@ query($login: String!, $cursor: String) {
 def run_query(
     query, login, cursor=None
 ):
-    request = requests.post(
-        "https://api.github.com/graphql",
-        json={"query": query, "variables": {"login": login, "cursor": cursor}},
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    if request.status_code == 200:
-        return request.json()
+    data = {"query": query, "variables": {"login": login, "cursor": cursor}}
+    headers = {"Authorization": f"Bearer {token}"}
+    request = Request("https://api.github.com/graphql", json.dumps(data).encode("utf-8"), headers)
+    with urlopen(request) as response:
+        code = response.code
+        body = response.read()
+
+    if code == 200:
+        return json.loads(body)
     else:
         raise Exception(
             "Query failed to run by returning code of {}. {}".format(
-                request.status_code, query
+                code, query
             )
         )
+
 
 def get_repos(login, type):
     if type == "organization":
