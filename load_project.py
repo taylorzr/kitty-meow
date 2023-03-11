@@ -74,9 +74,9 @@ def main(args: List[str]) -> str:
         flags.append(f"--user {user}")
     # NOTE: Can't use ' char within any of the binds
     binds = [
-        'ctrl-r:change-prompt({0}> )+reload(print "{1}")'.format(default_prompt, "\n".join(tabs_and_projects)),
-        'ctrl-t:change-prompt(tabs> )+reload(print "{0}")'.format("\n".join(tabs)),
-        'ctrl-p:change-prompt(projects> )+reload(print "{0}")'.format("\n".join(projects)),
+        'ctrl-r:change-prompt({0}> )+reload(printf "{1}")'.format(default_prompt, "\n".join(tabs_and_projects)),
+        'ctrl-t:change-prompt(tabs> )+reload(printf "{0}")'.format("\n".join(tabs)),
+        'ctrl-p:change-prompt(projects> )+reload(printf "{0}")'.format("\n".join(projects)),
         f"ctrl-g:change-prompt(github> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)})",
     ]
     args = [f"{bin_path}fzf", f"--prompt={default_prompt}> ", f"--bind={','.join(binds)}"]
