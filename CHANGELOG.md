@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2023-3-11
+
 ### Added
 
 - repo caching
-- user flag added, org is now optional, and both can be repeated
+- user repo support, org is now optional, and both can be repeated
 
 ## [0.0.4] - 2023-3-6
 
@@ -37,7 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[unreleased]: https://github.com/taylorzr/meow/compare/v0.0.4...HEAD
+[unreleased]: https://github.com/taylorzr/meow/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/taylorzr/meow/compare/v0.0.4...v0.1.0
 [0.0.4]: https://github.com/taylorzr/meow/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/taylorzr/meow/releases/tag/v0.0.2..v0.0.3
 [0.0.2]: https://github.com/taylorzr/meow/releases/tag/v0.0.1..v0.0.2
