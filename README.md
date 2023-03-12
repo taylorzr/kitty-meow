@@ -30,14 +30,8 @@ For example:
 
 env GITHUB_TOKEN=<github_token>
 env BIN_PATH=/opt/homebrew/bin/ # probably only needed on macs
-<<<<<<< HEAD
-map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --org my_cool_org
-map ctrl+shift+g kitten meow/cache_all_repos.py --org fanduel
-||||||| e262ea8
-map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --org my_cool_org
-=======
 map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --user my_cool_self --org my_cool_org
->>>>>>> orgs_and_users
+map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
 map ctrl+- goto_tab -1
 map ctrl+shift+x kitten meow/kill_old_projects.py
 ```
@@ -82,7 +76,7 @@ Something about big github orgs, talk about how you don't have to use caching. I
 it'll fetch from github everytime.
 
 ```conf
-map ctrl+shift+g kitten meow/cache_all_repos.py --org fanduel
+map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
 ```
 
 ### github auth
@@ -121,9 +115,14 @@ On select
 * if the project is a local dir, meow creates a new tab
 * if the project is github, meow clones to the first --dir, and creates a new tab
 
-Call your cache mapping, e.g. ctrl-shift-g to refresh the github cache. This cache is never
-refreshed automatically, you must call it to update.
 
+## Caching
+
+Just like the load_project mapping, you can specify multiple users and orgs in your cache mapping. You might want these to be different than
+users and orgs in your load_project mapping, because an org might have lots of repos, but your user
+just a few.
+
+Any uncached users/orgs repos will be loaded from github on every call to load_projects. And the cache never expires, you must call cache_all_repos to refresh it.
 
 ## TODO
 
@@ -131,4 +130,4 @@ refreshed automatically, you must call it to update.
 * configurable fzf bindings
 * selectable dir to clone to?
   * some people might use 1 dir for work and one for personal?
-* maybe use flags like --login=user=taylorzr --login=org=fanduel
+* maybe use flags like --login=user=taylorzr --login=org=my_cool_org
