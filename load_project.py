@@ -15,7 +15,7 @@ parser.add_argument(
     action="append",
     default=[],
     # required=True,
-    help="direcories to find projects",
+    help="directories to find projects",
 )
 
 parser.add_argument(
@@ -40,13 +40,12 @@ def main(args: List[str]) -> str:
 
     # FIXME: How to call boss in the main function?
     # data = boss.call_remote_control(None, ("ls",))
-    stuff = subprocess.run(
+    kitty_ls = json.loads(subprocess.run(
         ["kitty", "@", "ls"], capture_output=True, text=True
-    ).stdout.strip("\n")
-    data = json.loads(stuff)
+    ).stdout.strip("\n"))
 
-    tabs = [tab["title"] for tab in data[0]["tabs"]]
-    tabs_and_projects = [tab["title"] for tab in data[0]["tabs"]]
+    tabs = [tab["title"] for tab in kitty_ls[0]["tabs"]]
+    tabs_and_projects = [tab["title"] for tab in kitty_ls[0]["tabs"]]
     projects = []
 
     for dir in opts.dirs:
@@ -66,7 +65,7 @@ def main(args: List[str]) -> str:
 
     bin_path = os.getenv("BIN_PATH", "")
 
-    default_prompt = "tabs&projects"
+    default_prompt = "🐈 tabs&projects"
     flags = []
     for org in opts.orgs:
         flags.append(f"--org {org}")
@@ -75,9 +74,9 @@ def main(args: List[str]) -> str:
     # NOTE: Can't use ' char within any of the binds
     binds = [
         'ctrl-r:change-prompt({0}> )+reload(printf "{1}")'.format(default_prompt, "\n".join(tabs_and_projects)),
-        'ctrl-t:change-prompt(tabs> )+reload(printf "{0}")'.format("\n".join(tabs)),
-        'ctrl-p:change-prompt(projects> )+reload(printf "{0}")'.format("\n".join(projects)),
-        f"ctrl-g:change-prompt(github> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)})",
+        'ctrl-t:change-prompt(🐈 tabs> )+reload(printf "{0}")'.format("\n".join(tabs)),
+        'ctrl-p:change-prompt(🐈 projects> )+reload(printf "{0}")'.format("\n".join(projects)),
+        f"ctrl-g:change-prompt(🐈 github> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)})",
     ]
     args = [f"{bin_path}fzf", f"--prompt={default_prompt}> ", f"--bind={','.join(binds)}"]
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -111,17 +110,16 @@ def handle_result(
         print(f"cloning into {dir}...")
         path = f"{projects_root}/{dir}"
         subprocess.run(["git", "clone", ssh_url, path])
+        # TODO: handle error, like unset sso on ssh key and try this
     elif len(rest) != 0:
         print("something bad happenend :(")
-
-    stuff = boss.call_remote_control(None, ("ls",))
-    data = json.loads(stuff)
 
     with open(f"{os.path.expanduser('~')}/.config/kitty/meow/history", "a") as history:
         history.write(f"{dir} {datetime.now().isoformat()}\n")
         history.close()
 
-    for tab in data[0]["tabs"]:
+    kitty_ls = json.loads(boss.call_remote_control(None, ("ls",)))
+    for tab in kitty_ls[0]["tabs"]:
         if tab["title"] == dir:
             boss.call_remote_control(None, ("focus-tab", "--match", f"title:^{dir}$"))
             return

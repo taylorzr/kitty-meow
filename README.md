@@ -31,9 +31,10 @@ For example:
 env GITHUB_TOKEN=<github_token>
 env BIN_PATH=/opt/homebrew/bin/ # probably only needed on macs
 map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --user my_cool_self --org my_cool_org
+map ctrl+shift+n kitten meow/new_project.py --dir $HOME/code/
+map ctrl+shift+x kitten meow/kill_old_projects.py
 map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
 map ctrl+- goto_tab -1
-map ctrl+shift+x kitten meow/kill_old_projects.py
 ```
 
 ### kitty mappings
@@ -131,3 +132,5 @@ Any uncached users/orgs repos will be loaded from github on every call to load_p
 * selectable dir to clone to?
   * some people might use 1 dir for work and one for personal?
 * maybe use flags like --login=user=taylorzr --login=org=my_cool_org
+* combine the scripts into one cli with subcommands
+* configurable layout, shouldn't assume vim and 2 panes

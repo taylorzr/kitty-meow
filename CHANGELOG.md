@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2023-3-22
+
+### Added
+
+- new project command. load projects outside your user/org using ctrl+shift+n
+
 ## [0.1.1] - 2023-3-31
 
 ### Fixed
@@ -45,7 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[unreleased]: https://github.com/taylorzr/meow/compare/v0.1.1...HEAD
+[unreleased]: https://github.com/taylorzr/meow/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/taylorzr/meow/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/taylorzr/meow/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/taylorzr/meow/compare/v0.0.4...v0.1.0
 [0.0.4]: https://github.com/taylorzr/meow/compare/v0.0.3...v0.0.4
