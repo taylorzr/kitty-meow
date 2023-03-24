@@ -42,23 +42,24 @@ query($login: String!, $cursor: String) {
 """
 
 
-def run_query(
-    query, login, cursor=None
-):
+def run_query(query, login, cursor=None):
     data = {"query": query, "variables": {"login": login, "cursor": cursor}}
     headers = {"Authorization": f"Bearer {token}"}
-    request = Request("https://api.github.com/graphql", json.dumps(data).encode("utf-8"), headers)
+    request = Request(
+        "https://api.github.com/graphql", json.dumps(data).encode("utf-8"), headers
+    )
     with urlopen(request) as response:
         code = response.code
         body = response.read()
 
     if code == 200:
-        return json.loads(body)
+        data = json.loads(body)
+        if "errors" in data:
+            raise Exception(f'Query returned errors:\n{data["errors"]}')
+        return data
     else:
         raise Exception(
-            "Query failed to run by returning code of {}. {}".format(
-                code, query
-            )
+            "Query failed to run by returning code of {}. {}".format(code, query)
         )
 
 
@@ -68,7 +69,9 @@ def get_repos(login, type):
     elif type == "user":
         query = user_query
     else:
-        raise RuntimeError(f"expected type to be `user` or `organization`, but got `{type}`")
+        raise RuntimeError(
+            f"expected type to be `user` or `organization`, but got `{type}`"
+        )
 
     cursor = None
     repos = []

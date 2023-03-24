@@ -1,6 +1,7 @@
 import github
 import argparse
 import os
+import sys
 from typing import List
 
 parser = argparse.ArgumentParser(description="meow")
@@ -36,3 +37,7 @@ def main(args: List[str]) -> str:
         repos = github.get_repos(org, type="organization")
         with open(cache, "w") as file:
             file.write("\n".join(repos))
+
+
+if __name__ == "__main__":
+    main(sys.argv)
