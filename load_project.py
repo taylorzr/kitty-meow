@@ -40,9 +40,11 @@ def main(args: List[str]) -> str:
 
     # FIXME: How to call boss in the main function?
     # data = boss.call_remote_control(None, ("ls",))
-    kitty_ls = json.loads(subprocess.run(
-        ["kitty", "@", "ls"], capture_output=True, text=True
-    ).stdout.strip("\n"))
+    kitty_ls = json.loads(
+        subprocess.run(
+            ["kitty", "@", "ls"], capture_output=True, text=True
+        ).stdout.strip("\n")
+    )
 
     tabs = [tab["title"] for tab in kitty_ls[0]["tabs"]]
     tabs_and_projects = [tab["title"] for tab in kitty_ls[0]["tabs"]]
@@ -73,12 +75,20 @@ def main(args: List[str]) -> str:
         flags.append(f"--user {user}")
     # NOTE: Can't use ' char within any of the binds
     binds = [
-        'ctrl-r:change-prompt({0}> )+reload(printf "{1}")'.format(default_prompt, "\n".join(tabs_and_projects)),
+        'ctrl-r:change-prompt({0}> )+reload(printf "{1}")'.format(
+            default_prompt, "\n".join(tabs_and_projects)
+        ),
         'ctrl-t:change-prompt(🐈 tabs> )+reload(printf "{0}")'.format("\n".join(tabs)),
-        'ctrl-p:change-prompt(🐈 projects> )+reload(printf "{0}")'.format("\n".join(projects)),
+        'ctrl-p:change-prompt(🐈 projects> )+reload(printf "{0}")'.format(
+            "\n".join(projects)
+        ),
         f"ctrl-g:change-prompt(🐈 github> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)})",
     ]
-    args = [f"{bin_path}fzf", f"--prompt={default_prompt}> ", f"--bind={','.join(binds)}"]
+    args = [
+        f"{bin_path}fzf",
+        f"--prompt={default_prompt}> ",
+        f"--bind={','.join(binds)}",
+    ]
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out = p.communicate(input="\n".join(tabs_and_projects).encode())[0]
     selection = out.decode().strip()

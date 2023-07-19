@@ -19,6 +19,8 @@ parser.add_argument(
 )
 
 
+# TODO: handle non github urls like
+# https://src.fedoraproject.org/rpms/kitty.git
 def main(args: List[str]) -> str:
     # TODO: gracefully handle ctrl-c
     url = input("🐈 New project\nenter name or github url: ")
@@ -37,12 +39,7 @@ def handle_result(
 
     if not answer:
         return
-
-    # TODO: if github url, clone, if only name, just create dir and new tab
-    # TODO: check if dir already exists
-    # TODO: check if tab already exists
-
-    if "/" in answer:
+    elif "/" in answer:
         # Note: This is an attempt to see if the answer is a git url or not, e.g.
         #   - git@github.com:taylorzr/kitty-meow.git
         #   - https://github.com/taylorzr/kitty-meow.git
@@ -85,6 +82,7 @@ def handle_result(
             "nvim",
         ),
     )
+
     boss.call_remote_control(
         window, ("launch", "--type", "window", "--dont-take-focus", "--cwd", "current")
     )
