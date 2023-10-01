@@ -1,12 +1,23 @@
 # Kitty-Meow
 
-Meow is a kitty terminal extension for working with projects. It allows you to easily switch between
-projects, and load them either from local directories or github.
+Meow is a kitty terminal extension for working with projects, where each kitty tab is a different
+project. It allows you to fuzzy switch between projects, and load them either from local directories or github.
 
-If you've used tmux sessions. This is similar to switching between sessions, but allows you to
+If you've used tmux, this is similar to switching between sessions, but allows you to
 create new sessions as well.
 
 ![Meow Screenshot](screenshot.png)
+
+## Usage
+
+Call your project mapping, e.g. ctrl-p, and hit enter to select.  Initially, tabs & local projects are listed, but you can show remote, local project only, or tabs only.
+
+On select
+
+* if the project is already in a tab, meow switches to that tab
+* if the project is a local dir, meow creates a new tab
+* if the project is github, meow clones to the first --dir, and creates a new tab
+
 
 ## Installation
 
@@ -30,7 +41,7 @@ For example:
 
 env GITHUB_TOKEN=<github_token>
 env BIN_PATH=/opt/homebrew/bin/ # probably only needed on macs
-map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --user my_cool_self --org my_cool_org
+map ctrl+p kitten meow/load_project.py --dir $HOME/code/ --user my_cool_self --org my_cool_org
 map ctrl+shift+n kitten meow/new_project.py --dir $HOME/code/
 map ctrl+shift+x kitten meow/kill_old_projects.py
 map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
@@ -46,7 +57,7 @@ Create a mapping for loading projects. The pattern is:
 ```conf
 # ~/.config/kitty/kitty.conf
 
-map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --user <you> --org <github_org>
+map ctrl+p kitten meow/load_project.py --dir $HOME/code/ --user <you> --org <github_org>
 ```
 
 --dir can be provided multiple times.
@@ -59,7 +70,7 @@ For example, I use:
 ```conf
 # ~/.config/kitty/kitty.conf
 
-map ctrl+space kitten meow/load_project.py --dir $HOME/code/ --dir $HOME --dir $HOME/.config/kitty/meow --org my_cool_org
+map ctrl+p kitten meow/load_project.py --dir $HOME/code/ --dir $HOME --dir $HOME/.config/kitty/meow --org my_cool_org
 ```
 
 On mac, paths are goofy. You proabably need to set env BIN_PATH as well. This should be the dir
@@ -98,24 +109,6 @@ env GITHUB_TOKEN=<github_token>
 ```
 
 You need to put env in your kitty config, not .zshrc. More about that [here](https://sw.kovidgoyal.net/kitty/faq/#things-behave-differently-when-running-kitty-from-system-launcher-vs-from-another-terminal)
-
-## Usage
-
-Call your mapping, e.g. ctrl-space
-
-* initially, tabs & local projects are listed
-* ctrl-t lists all tabs
-* ctrl-p lists all local projects
-* ctrl-g lists all github repos
-* ctrl-r returns to lists tabs & projects
-* enter selects an item
-
-On select
-
-* if the project is already in a tab, meow switches to that tab
-* if the project is a local dir, meow creates a new tab
-* if the project is github, meow clones to the first --dir, and creates a new tab
-
 
 ## Caching
 

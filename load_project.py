@@ -67,7 +67,7 @@ def main(args: List[str]) -> str:
 
     bin_path = os.getenv("BIN_PATH", "")
 
-    default_prompt = "🐈 tabs&projects"
+    default_prompt = "🐈project"
     flags = []
     for org in opts.orgs:
         flags.append(f"--org {org}")
@@ -75,17 +75,18 @@ def main(args: List[str]) -> str:
         flags.append(f"--user {user}")
     # NOTE: Can't use ' char within any of the binds
     binds = [
-        'ctrl-r:change-prompt({0}> )+reload(printf "{1}")'.format(
-            default_prompt, "\n".join(tabs_and_projects)
-        ),
-        'ctrl-t:change-prompt(🐈 tabs> )+reload(printf "{0}")'.format("\n".join(tabs)),
-        'ctrl-p:change-prompt(🐈 projects> )+reload(printf "{0}")'.format(
+        f"ctrl-r:change-prompt(🐈remote> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)})",
+        'ctrl-t:change-prompt(🐈tabs> )+reload(printf "{0}")'.format("\n".join(tabs)),
+        'alt-p:change-prompt(🐈projects> )+reload(printf "{0}")'.format(
             "\n".join(projects)
         ),
-        f"ctrl-g:change-prompt(🐈 github> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)})",
+        'alt-l:change-prompt({0}> )+reload(printf "{1}")'.format(
+            default_prompt, "\n".join(tabs_and_projects)
+        ),
     ]
     args = [
         f"{bin_path}fzf",
+        f"--header=ctrl-r: remote | alt-p: project | ctrl-t: tabs | alt-l: tabs&projects",
         f"--prompt={default_prompt}> ",
         f"--bind={','.join(binds)}",
     ]
