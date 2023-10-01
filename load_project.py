@@ -148,7 +148,7 @@ def handle_result(
             "zsh",
             "--interactive",
             "-c",
-            "nvim",
+            "${EDITOR:-vim}"
         ),
     )
 
