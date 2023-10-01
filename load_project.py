@@ -135,7 +135,7 @@ def handle_result(
             boss.call_remote_control(None, ("focus-tab", "--match", f"title:^{dir}$"))
             return
 
-    window = boss.call_remote_control(
+    window_id = boss.call_remote_control(
         None,
         (
             "launch",
@@ -151,6 +151,8 @@ def handle_result(
             "nvim",
         ),
     )
+
     boss.call_remote_control(
-        window, ("launch", "--type", "window", "--dont-take-focus", "--cwd", "current")
+        boss.window_id_map.get(window_id),
+        ("launch", "--type", "window", "--dont-take-focus", "--cwd", "current"),
     )
