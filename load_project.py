@@ -144,15 +144,15 @@ def handle_result(
             "--tab-title",
             dir,
             "--cwd",
-            f"{path}",
-            "zsh",
-            "--interactive",
-            "-c",
-            "${EDITOR:-vim}"
+            path,
         ),
     )
 
+    parent_window = boss.window_id_map.get(window_id)
+
+    # start editor and another window
+    boss.call_remote_control(parent_window, ("send-text", "${EDITOR:-vim}\n"))
     boss.call_remote_control(
-        boss.window_id_map.get(window_id),
+        parent_window,
         ("launch", "--type", "window", "--dont-take-focus", "--cwd", "current"),
     )
