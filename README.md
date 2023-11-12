@@ -10,14 +10,14 @@ create new sessions as well.
 
 ## Usage
 
-Call your project mapping, e.g. ctrl-p, and hit enter to select.  Initially, tabs & local projects are listed, but you can show remote, local project only, or tabs only.
+Call your project mapping, e.g. ctrl-p, and hit enter to select. Initially, tabs & local projects
+are listed, but you can show remote, local project only, or tabs only.
 
 On select
 
-* if the project is already in a tab, meow switches to that tab
-* if the project is a local dir, meow creates a new tab
-* if the project is github, meow clones to the first --dir, and creates a new tab
-
+- if the project is already in a tab, meow switches to that tab
+- if the project is a local dir, meow creates a new tab
+- if the project is github, meow clones to the first --dir, and creates a new tab
 
 ## Installation
 
@@ -31,8 +31,8 @@ Depends on [fzf](https://github.com/junegunn/fzf/) and [jq](https://github.com/s
 
 You'll need to:
 
-* create mappings
-* set your github token as env
+- create mappings
+- set your github token as env
 
 For example:
 
@@ -48,7 +48,7 @@ map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
 map ctrl+- goto_tab -1
 ```
 
-### kitty mappings
+## Kitty Mappings
 
 #### Loading projects
 
@@ -62,8 +62,8 @@ map ctrl+p kitten meow/load_project.py --dir $HOME/code/ --user <you> --org <git
 
 --dir can be provided multiple times.
 
-* when a dir ends in /, meow shows all it's subdirs
-* otherwise, meow only shows that specific dir
+- when a dir ends in /, meow shows all it's subdirs
+- otherwise, meow only shows that specific dir
 
 For example, I use:
 
@@ -84,14 +84,21 @@ env BIN_PATH=/opt/homebrew/bin/
 
 #### Caching github repositories
 
-Something about big github orgs, talk about how you don't have to use caching. If file doesn't exist
-it'll fetch from github everytime.
+If you work in an org with lots of repos, loading remote projects can be slow. You can create a
+binding that will cache all the repos for orgs. This is a manual process, just run it whenever you
+need to update the list of projects for an org.
 
 ```conf
 map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
 ```
 
-### github auth
+Just like the load_project mapping, you can specify multiple users and orgs in your cache mapping.
+You might want these to be different than users and orgs in your load_project mapping, because an
+org might have lots of repos, but your user just a few. Any uncached users/orgs repos will be
+loaded from github on every call to load_projects. And the cache never expires, you must call
+cache_all_repos to refresh it.
+
+## Github Auth
 
 You need to create a github token, and set it as env GITHUB_TOKEN. Because I commit kitty.conf to my
 dotfiles, I put any secrets in an extra conf file:
@@ -110,20 +117,11 @@ env GITHUB_TOKEN=<github_token>
 
 You need to put env in your kitty config, not .zshrc. More about that [here](https://sw.kovidgoyal.net/kitty/faq/#things-behave-differently-when-running-kitty-from-system-launcher-vs-from-another-terminal)
 
-## Caching
-
-Just like the load_project mapping, you can specify multiple users and orgs in your cache mapping. You might want these to be different than
-users and orgs in your load_project mapping, because an org might have lots of repos, but your user
-just a few.
-
-Any uncached users/orgs repos will be loaded from github on every call to load_projects. And the cache never expires, you must call cache_all_repos to refresh it.
-
 ## TODO
 
-* record short video demo
-* configurable fzf bindings
-* selectable dir to clone to?
-  * some people might use 1 dir for work and one for personal?
-* maybe use flags like --login=user=taylorzr --login=org=my_cool_org
-* combine the scripts into one cli with subcommands
-* configurable layout, shouldn't assume vim and 2 panes
+- record short video demo
+- configurable fzf bindings
+- selectable dir to clone to?
+  - some people might use 1 dir for work and one for personal?
+- maybe use flags like --login=user=taylorzr --login=org=my_cool_org
+- combine the scripts into one cli with subcommands
