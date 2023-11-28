@@ -97,13 +97,16 @@ def main(args: List[str]) -> tuple[str, bool]:
     # from kittens.tui.loop import debug
     # debug(selection)
 
-    answer = input('Start in project mode? [y,N] >')
-    if answer.upper() == 'Y':
-        answer = True
-    else:
-        answer = False
+    as_project = False
 
-    return (selection, answer)
+    if selection not in tabs:
+        as_project = input('Start in project mode? [y,N] >')
+        if as_project.upper() == 'Y':
+            as_project = True
+        else:
+            as_project = False
+
+    return (selection, as_project)
 
 
 def handle_result(
