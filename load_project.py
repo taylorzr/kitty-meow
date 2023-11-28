@@ -35,7 +35,7 @@ parser.add_argument(
 )
 
 
-def main(args: List[str]) -> str:
+def main(args: List[str]) -> tuple[str, bool]:
     opts = parser.parse_args(args[1:])
 
     # FIXME: How to call boss in the main function?
@@ -97,11 +97,20 @@ def main(args: List[str]) -> str:
     # from kittens.tui.loop import debug
     # debug(selection)
 
-    return selection
+    as_project = False
+
+    if selection not in tabs:
+        as_project = input('Start in project mode? [y,N] >')
+        if as_project.upper() == 'Y':
+            as_project = True
+        else:
+            as_project = False
+
+    return (selection, as_project)
 
 
 def handle_result(
-    args: List[str], answer: str, target_window_id: int, boss: Boss
+    args: List[str], answer: tuple[str, bool], target_window_id: int, boss: Boss
 ) -> None:
     opts = parser.parse_args(args[1:])
 
@@ -113,7 +122,8 @@ def handle_result(
     if not answer:
         return
 
-    path, *rest = answer.split()
+    (path, as_project) = answer
+    path, *rest = path.split()
     dir = os.path.basename(path)
 
     if len(rest) == 1:
@@ -150,9 +160,10 @@ def handle_result(
 
     parent_window = boss.window_id_map.get(window_id)
 
-    # start editor and another window
-    boss.call_remote_control(parent_window, ("send-text", "${EDITOR:-vim}\n"))
-    boss.call_remote_control(
-        parent_window,
-        ("launch", "--type", "window", "--dont-take-focus", "--cwd", "current"),
-    )
+    # start editor and another window if as_project is True
+    if as_project:
+        boss.call_remote_control(parent_window, ("send-text", "${EDITOR:-vim}\n"))
+        boss.call_remote_control(
+            parent_window,
+            ("launch", "--type", "window", "--dont-take-focus", "--cwd", path),
+        )
