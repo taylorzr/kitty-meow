@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0] - 2024-4-20
+## [0.4.0] - 2024-4-20
 
 ### Changed
 
@@ -23,6 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - load & new projects support multiple selections
 - fix 2nd window path on mac
+
+## [0.3.0] - 2023-11-11
+
+### Changed
+
+- loads env EDITOR now, not always vim
+
+### Added
+
+- keybinds listed in fzf header
 
 ## [0.2.0] - 2023-7-19
 
