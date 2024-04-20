@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import subprocess
 from datetime import datetime
 from typing import List
@@ -164,7 +165,6 @@ def load_project(boss, path, dir):
         ),
     )
 
-    # todo: int -> window_id works on linux?
     parent_window = boss.window_id_map.get(int(window_id))
 
     # start editor and another window

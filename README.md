@@ -92,10 +92,10 @@ need to update the list of projects for an org.
 map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
 ```
 
-Just like the load_project mapping, you can specify multiple users and orgs in your cache mapping.
-You might want these to be different than users and orgs in your load_project mapping, because an
+Just like the projects.py load mapping, you can specify multiple users and orgs in your cache mapping.
+You might want these to be different than users and orgs in your projects.py load mapping, because an
 org might have lots of repos, but your user just a few. Any uncached users/orgs repos will be
-loaded from github on every call to load_projects. And the cache never expires, you must call
+loaded from github on every call to projects.py load. And the cache never expires, you must call
 cache_all_repos to refresh it.
 
 ## Github Auth
