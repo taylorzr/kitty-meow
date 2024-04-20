@@ -122,6 +122,7 @@ def load_main(args, opts):
     args = [
         f"{bin_path}fzf",
         "--multi",
+        "--reverse",
         "--header=ctrl-r: remote | alt-p: project | ctrl-t: tabs | alt-l: tabs&projects",
         f"--prompt={default_prompt}> ",
         f"--bind={','.join(binds)}",
