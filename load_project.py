@@ -86,22 +86,27 @@ def main(args: List[str]) -> str:
     ]
     args = [
         f"{bin_path}fzf",
+        "--multi",
         f"--header=ctrl-r: remote | alt-p: project | ctrl-t: tabs | alt-l: tabs&projects",
         f"--prompt={default_prompt}> ",
         f"--bind={','.join(binds)}",
     ]
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out = p.communicate(input="\n".join(tabs_and_projects).encode())[0]
-    selection = out.decode().strip()
+    output = out.decode().strip()
 
     # from kittens.tui.loop import debug
-    # debug(selection)
+    # debug(output)
 
-    return selection
+    if output == "":
+        return []
+
+    return output.split("\n")
+
 
 
 def handle_result(
-    args: List[str], answer: str, target_window_id: int, boss: Boss
+    args: List[str], selections: str, target_window_id: int, boss: Boss
 ) -> None:
     opts = parser.parse_args(args[1:])
 
@@ -110,49 +115,50 @@ def handle_result(
     # supported?
     projects_root = opts.dirs[0]
 
-    if not answer:
+    if not selections:
         return
 
-    path, *rest = answer.split()
-    dir = os.path.basename(path)
+    for selection in selections:
+        path, *rest = selection.split()
+        dir = os.path.basename(path)
 
-    if len(rest) == 1:
-        ssh_url = rest[0]
-        print(f"cloning into {dir}...")
-        path = f"{projects_root}/{dir}"
-        subprocess.run(["git", "clone", ssh_url, path])
-        # TODO: handle error, like unset sso on ssh key and try this
-    elif len(rest) != 0:
-        print("something bad happenend :(")
+        if len(rest) == 1:
+            ssh_url = rest[0]
+            print(f"cloning into {dir}...")
+            path = f"{projects_root}/{dir}"
+            subprocess.run(["git", "clone", ssh_url, path])
+            # TODO: handle error, like unset sso on ssh key and try this
+        elif len(rest) != 0:
+            print("something bad happenend :(")
 
-    with open(f"{os.path.expanduser('~')}/.config/kitty/meow/history", "a") as history:
-        history.write(f"{dir} {datetime.now().isoformat()}\n")
-        history.close()
+        with open(f"{os.path.expanduser('~')}/.config/kitty/meow/history", "a") as history:
+            history.write(f"{dir} {datetime.now().isoformat()}\n")
+            history.close()
 
-    kitty_ls = json.loads(boss.call_remote_control(None, ("ls",)))
-    for tab in kitty_ls[0]["tabs"]:
-        if tab["title"] == dir:
-            boss.call_remote_control(None, ("focus-tab", "--match", f"title:^{dir}$"))
-            return
+        kitty_ls = json.loads(boss.call_remote_control(None, ("ls",)))
+        for tab in kitty_ls[0]["tabs"]:
+            if tab["title"] == dir:
+                boss.call_remote_control(None, ("focus-tab", "--match", f"title:^{dir}$"))
+                return
 
-    window_id = boss.call_remote_control(
-        None,
-        (
-            "launch",
-            "--type",
-            "tab",
-            "--tab-title",
-            dir,
-            "--cwd",
-            path,
-        ),
-    )
+        window_id = boss.call_remote_control(
+            None,
+            (
+                "launch",
+                "--type",
+                "tab",
+                "--tab-title",
+                dir,
+                "--cwd",
+                path,
+            ),
+        )
 
-    parent_window = boss.window_id_map.get(window_id)
+        parent_window = boss.window_id_map.get(window_id)
 
-    # start editor and another window
-    boss.call_remote_control(parent_window, ("send-text", "${EDITOR:-vim}\n"))
-    boss.call_remote_control(
-        parent_window,
-        ("launch", "--type", "window", "--dont-take-focus", "--cwd", "current"),
-    )
+        # start editor and another window
+        boss.call_remote_control(parent_window, ("send-text", "${EDITOR:-vim}\n"))
+        boss.call_remote_control(
+            parent_window,
+            ("launch", "--type", "window", "--dont-take-focus", "--cwd", "current"),
+        )
