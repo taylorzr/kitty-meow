@@ -104,7 +104,6 @@ def main(args: List[str]) -> str:
     return output.split("\n")
 
 
-
 def handle_result(
     args: List[str], selections: str, target_window_id: int, boss: Boss
 ) -> None:
@@ -154,11 +153,12 @@ def handle_result(
             ),
         )
 
-        parent_window = boss.window_id_map.get(window_id)
+        # todo: int -> window_id works on linux?
+        parent_window = boss.window_id_map.get(int(window_id))
 
         # start editor and another window
         boss.call_remote_control(parent_window, ("send-text", "${EDITOR:-vim}\n"))
         boss.call_remote_control(
             parent_window,
-            ("launch", "--type", "window", "--dont-take-focus", "--cwd", "current"),
+            ("launch", "--type", "window", "--dont-take-focus", "--cwd", path),
         )
