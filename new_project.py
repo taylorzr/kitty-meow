@@ -22,9 +22,11 @@ parser.add_argument(
 # TODO: handle non github urls like
 # https://src.fedoraproject.org/rpms/kitty.git
 def main(args: List[str]) -> str:
-    # TODO: gracefully handle ctrl-c
-    url = input("🐈 New project\nenter name or github url: ")
-    return url
+    try:
+        url = input("🐈 New project\nenter name or github url: ")
+        return url
+    except KeyboardInterrupt:
+        return ""
 
 
 def handle_result(
