@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2024-4-20
+
+### Changed
+
+- combined python scripts for load & new into single file
+  - instead of e.g.
+    - ctrl+p kitten meow/load_project.py ...
+    - ctrl+shift+n kitten meow/load_project.py ...
+  - use e.g.
+    - ctrl+p kitten meow/projects.py load ...
+    - ctrl+shift+n kitten meow/projects.py new ...
+
+### Added
+
+- load & new projects support multiple selections
+- fix 2nd window path on mac
+
 ## [0.2.0] - 2023-7-19
 
 ### Added
