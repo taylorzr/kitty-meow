@@ -41,8 +41,8 @@ For example:
 
 env GITHUB_TOKEN=<github_token>
 env BIN_PATH=/opt/homebrew/bin/ # probably only needed on macs
-map ctrl+p kitten meow/load_project.py --dir $HOME/code/ --user my_cool_self --org my_cool_org
-map ctrl+shift+n kitten meow/new_project.py --dir $HOME/code/
+map ctrl+p kitten meow/projects.py load --dir $HOME/code/ --user my_cool_self --org my_cool_org
+map ctrl+shift+n kitten meow/projects.py new --dir $HOME/code/
 map ctrl+shift+x kitten meow/kill_old_projects.py
 map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
 map ctrl+- goto_tab -1
@@ -57,7 +57,7 @@ Create a mapping for loading projects. The pattern is:
 ```conf
 # ~/.config/kitty/kitty.conf
 
-map ctrl+p kitten meow/load_project.py --dir $HOME/code/ --user <you> --org <github_org>
+map ctrl+p kitten meow/project.py load --dir $HOME/code/ --user <you> --org <github_org>
 ```
 
 --dir can be provided multiple times.
@@ -70,7 +70,7 @@ For example, I use:
 ```conf
 # ~/.config/kitty/kitty.conf
 
-map ctrl+p kitten meow/load_project.py --dir $HOME/code/ --dir $HOME --dir $HOME/.config/kitty/meow --org my_cool_org
+map ctrl+p kitten meow/project.py load --dir $HOME/code/ --dir $HOME --dir $HOME/.config/kitty/meow --org my_cool_org
 ```
 
 On mac, paths are goofy. You proabably need to set env BIN_PATH as well. This should be the dir

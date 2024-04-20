@@ -9,12 +9,13 @@ from kitty.boss import Boss
 
 parser = argparse.ArgumentParser(description="meow")
 
+parser.add_argument("command", nargs="?", default="load")
+
 parser.add_argument(
     "--dir",
     dest="dirs",
     action="append",
     default=[],
-    # required=True,
     help="directories to find projects",
 )
 
@@ -35,9 +36,43 @@ parser.add_argument(
 )
 
 
-def main(args: List[str]) -> str:
+def new_main(args, opts):
+    try:
+        url = input("🐈 New project\nenter name or github url: ")
+        return url
+    except KeyboardInterrupt:
+        return ""
+
+
+def new_handler(args: List[str], answer: str, target_window_id: int, boss: Boss):
     opts = parser.parse_args(args[1:])
 
+    # This is the dir we clone repos into, for me it's not a big deal if they get cloned to the
+    # first dir. But some people might want to pick which dir to clone to? How could that be
+    # supported?
+    projects_root = opts.dirs[0]
+
+    if not answer:
+        return
+    elif "/" in answer:
+        # Note: This is an attempt to see if the answer is a git url or not, e.g.
+        #   - git@github.com:taylorzr/kitty-meow.git
+        #   - https://github.com/taylorzr/kitty-meow.git
+        github_url = answer
+        dir = re.split("[/.]", github_url)[2]
+        print(f"cloning into {dir}...")
+        path = f"{projects_root}/{dir}"
+        subprocess.run(["git", "clone", github_url, path])
+    else:
+        new_local = answer
+        dir = new_local
+        path = f"{projects_root}/{dir}"
+        os.makedirs(path, exist_ok=True)
+
+    load_project(boss, path, dir)
+
+
+def load_main(args, opts):
     # FIXME: How to call boss in the main function?
     # data = boss.call_remote_control(None, ("ls",))
     kitty_ls = json.loads(
@@ -87,7 +122,7 @@ def main(args: List[str]) -> str:
     args = [
         f"{bin_path}fzf",
         "--multi",
-        f"--header=ctrl-r: remote | alt-p: project | ctrl-t: tabs | alt-l: tabs&projects",
+        "--header=ctrl-r: remote | alt-p: project | ctrl-t: tabs | alt-l: tabs&projects",
         f"--prompt={default_prompt}> ",
         f"--bind={','.join(binds)}",
     ]
@@ -104,9 +139,42 @@ def main(args: List[str]) -> str:
     return output.split("\n")
 
 
-def handle_result(
-    args: List[str], selections: str, target_window_id: int, boss: Boss
-) -> None:
+def load_project(boss, path, dir):
+    with open(f"{os.path.expanduser('~')}/.config/kitty/meow/history", "a") as history:
+        history.write(f"{dir} {datetime.now().isoformat()}\n")
+        history.close()
+
+    kitty_ls = json.loads(boss.call_remote_control(None, ("ls",)))
+    for tab in kitty_ls[0]["tabs"]:
+        if tab["title"] == dir:
+            boss.call_remote_control(None, ("focus-tab", "--match", f"title:^{dir}$"))
+            return
+
+    window_id = boss.call_remote_control(
+        None,
+        (
+            "launch",
+            "--type",
+            "tab",
+            "--tab-title",
+            dir,
+            "--cwd",
+            path,
+        ),
+    )
+
+    # todo: int -> window_id works on linux?
+    parent_window = boss.window_id_map.get(int(window_id))
+
+    # start editor and another window
+    boss.call_remote_control(parent_window, ("send-text", "${EDITOR:-vim}\n"))
+    boss.call_remote_control(
+        parent_window,
+        ("launch", "--type", "window", "--dont-take-focus", "--cwd", path),
+    )
+
+
+def load_handler(args: List[str], answer: str, target_window_id: int, boss: Boss):
     opts = parser.parse_args(args[1:])
 
     # This is the dir we clone repos into, for me it's not a big deal if they get cloned to the
@@ -114,10 +182,10 @@ def handle_result(
     # supported?
     projects_root = opts.dirs[0]
 
-    if not selections:
+    if not answer:
         return
 
-    for selection in selections:
+    for selection in answer:
         path, *rest = selection.split()
         dir = os.path.basename(path)
 
@@ -130,35 +198,24 @@ def handle_result(
         elif len(rest) != 0:
             print("something bad happenend :(")
 
-        with open(f"{os.path.expanduser('~')}/.config/kitty/meow/history", "a") as history:
-            history.write(f"{dir} {datetime.now().isoformat()}\n")
-            history.close()
+        load_project(boss, path, dir)
 
-        kitty_ls = json.loads(boss.call_remote_control(None, ("ls",)))
-        for tab in kitty_ls[0]["tabs"]:
-            if tab["title"] == dir:
-                boss.call_remote_control(None, ("focus-tab", "--match", f"title:^{dir}$"))
-                return
 
-        window_id = boss.call_remote_control(
-            None,
-            (
-                "launch",
-                "--type",
-                "tab",
-                "--tab-title",
-                dir,
-                "--cwd",
-                path,
-            ),
-        )
+def main(args: List[str]) -> str:
+    opts = parser.parse_args(args[1:])
 
-        # todo: int -> window_id works on linux?
-        parent_window = boss.window_id_map.get(int(window_id))
+    if opts.command == "load":
+        return load_main(args, opts)
+    elif opts.command == "new":
+        return new_main(args, opts)
 
-        # start editor and another window
-        boss.call_remote_control(parent_window, ("send-text", "${EDITOR:-vim}\n"))
-        boss.call_remote_control(
-            parent_window,
-            ("launch", "--type", "window", "--dont-take-focus", "--cwd", path),
-        )
+
+def handle_result(
+    args: List[str], answer: str, target_window_id: int, boss: Boss
+) -> None:
+    opts = parser.parse_args(args[1:])
+
+    if opts.command == "load":
+        return load_handler(args, answer, target_window_id, boss)
+    elif opts.command == "new":
+        return new_handler(args, answer, target_window_id, boss)
