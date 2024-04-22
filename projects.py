@@ -8,10 +8,10 @@ from typing import List
 
 from kitty.boss import Boss
 
+import meow
+
 parser = argparse.ArgumentParser(description="meow")
-
 parser.add_argument("command", nargs="?", default="load")
-
 parser.add_argument(
     "--dir",
     dest="dirs",
@@ -19,7 +19,6 @@ parser.add_argument(
     default=[],
     help="directories to find projects",
 )
-
 parser.add_argument(
     "--org",
     dest="orgs",
@@ -27,7 +26,6 @@ parser.add_argument(
     default=[],
     help="look for repos in these github orgs",
 )
-
 parser.add_argument(
     "--user",
     dest="users",
@@ -103,30 +101,40 @@ def load_main(args, opts):
 
     bin_path = os.getenv("BIN_PATH", "")
 
-    default_prompt = "🐈project"
     flags = []
     for org in opts.orgs:
         flags.append(f"--org {org}")
     for user in opts.users:
         flags.append(f"--user {user}")
-    # NOTE: Can't use ' char within any of the binds
-    binds = [
-        f"ctrl-r:change-prompt(🐈remote> )+reload({bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)})",
-        'ctrl-t:change-prompt(🐈tabs> )+reload(printf "{0}")'.format("\n".join(tabs)),
-        'alt-p:change-prompt(🐈projects> )+reload(printf "{0}")'.format(
-            "\n".join(projects)
-        ),
-        'alt-l:change-prompt({0}> )+reload(printf "{1}")'.format(
-            default_prompt, "\n".join(tabs_and_projects)
-        ),
-    ]
+
+    binds, header = meow.binds_and_header(
+        {
+            "ctrl-r": (
+                "remote",
+                f"{bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)}",
+            ),
+            "ctrl-t": (
+                "tabs",
+                'printf "{0}"'.format("\n".join(tabs)),
+            ),
+            "alt-p": (
+                "projects",
+                'printf "{0}"'.format("\n".join(projects)),
+            ),
+            "alt-l": (
+                "tabs&project",
+                'printf "{0}"'.format("\n".join(tabs_and_projects)),
+            ),
+        }
+    )
+
     args = [
         f"{bin_path}fzf",
         "--multi",
         "--reverse",
-        "--header=ctrl-r: remote | alt-p: project | ctrl-t: tabs | alt-l: tabs&projects",
-        f"--prompt={default_prompt}> ",
-        f"--bind={','.join(binds)}",
+        f"--header={header}",
+        f"--bind={binds}",
+        "--prompt=🐈project> ",
     ]
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out = p.communicate(input="\n".join(tabs_and_projects).encode())[0]

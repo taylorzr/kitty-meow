@@ -43,7 +43,7 @@ env GITHUB_TOKEN=<github_token>
 env BIN_PATH=/opt/homebrew/bin/ # probably only needed on macs
 map ctrl+p kitten meow/projects.py load --dir $HOME/code/ --user my_cool_self --org my_cool_org
 map ctrl+shift+n kitten meow/projects.py new --dir $HOME/code/
-map ctrl+shift+x kitten meow/kill_old_projects.py
+map ctrl+shift+x kitten meow/kill.py
 map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
 map ctrl+- goto_tab -1
 ```

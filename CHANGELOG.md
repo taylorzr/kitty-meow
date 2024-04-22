@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2024...
+
+### Changed
+
+- kill now defaults to any project, ctrl-o to kill old projects
+- kill_old_projects.py renamed to kill.py
+  - instead of e.g. map ctrl+shift+x kitten meow/kill_old_projects.py
+  - use e.g. map ctrl+shift+x kitten meow/kill.py
+
 ## [0.4.0] - 2024-4-20
 
 ### Changed

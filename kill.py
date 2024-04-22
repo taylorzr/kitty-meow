@@ -6,6 +6,8 @@ from typing import List
 
 from kitty.boss import Boss
 
+import meow
+
 
 def main(args: List[str]) -> str:
     last_views = {}
@@ -14,9 +16,10 @@ def main(args: List[str]) -> str:
         for line in history:
             parts = line.strip().split(" ")
             if len(parts) != 2:
-                import code
-
-                code.interact(local=dict(globals(), **locals()))
+                print(
+                    f"expected history to have 2 parts (project last-time), but found {len(parts)}"
+                )
+                continue
             last_views[parts[0]] = parts[1]
 
     # TODO: make time configurable
@@ -27,21 +30,40 @@ def main(args: List[str]) -> str:
     ).stdout.strip("\n")
     data = json.loads(stuff)
 
-    old_tabs = []
+    all_tabs, old_tabs = [], []
 
     for tab in data[0]["tabs"]:
         title = tab["title"]
-        last_view = last_views.get(title, None)
+        all_tabs.append(title)
 
+        last_view = last_views.get(title, None)
         if not last_view or datetime.fromisoformat(last_view) < cutoff:
-            # print(f"{title} {last_view or '-'}")
             old_tabs.append(title)
 
     bin_path = os.getenv("BIN_PATH", "")
 
-    args = [f"{bin_path}fzf", "--prompt=kill> ", "--multi"]
+    binds, header = meow.binds_and_header(
+        {
+            "ctrl-o": (
+                "old",
+                'printf "{0}"'.format("\n".join(old_tabs)),
+            ),
+            "ctrl-a": (
+                "any",
+                'printf "{0}"'.format("\n".join(all_tabs)),
+            ),
+        }
+    )
+    args = [
+        f"{bin_path}fzf",
+        "--multi",
+        "--reverse",
+        f"--header={header}",
+        f"--bind={binds}",
+        f"--prompt=💀🐈kill> ",
+    ]
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    out = p.communicate(input="\n".join(old_tabs).encode())[0]
+    out = p.communicate(input="\n".join(all_tabs).encode())[0]
     selections = out.decode().strip()
 
     if selections == "":
