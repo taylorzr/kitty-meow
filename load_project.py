@@ -19,6 +19,12 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--dirfile",
+    dest="dirfile",
+    help="file with directories to find projects",
+)
+
+parser.add_argument(
     "--org",
     dest="orgs",
     action="append",
@@ -33,6 +39,10 @@ parser.add_argument(
     default=[],
     help="look for repos for these github users",
 )
+
+def get_dirs_from_file(file):
+    with open(file, "r") as f:
+        return [line.strip() for line in f.readlines()]
 
 
 def main(args: List[str]) -> tuple[str, bool]:
@@ -50,7 +60,11 @@ def main(args: List[str]) -> tuple[str, bool]:
     tabs_and_projects = [tab["title"] for tab in kitty_ls[0]["tabs"]]
     projects = []
 
+    if opts.dirfile:
+        opts.dirs += [line for line in get_dirs_from_file(opts.dirfile) if line not in opts.dirs]
+
     for dir in opts.dirs:
+        dir = os.path.expanduser(dir)
         if dir.endswith("/"):
             for f in os.scandir(dir):
                 if f.is_dir():
@@ -99,8 +113,8 @@ def main(args: List[str]) -> tuple[str, bool]:
 
     as_project = False
 
-    if selection not in tabs:
-        as_project = input('Start in project mode? [y,N] >')
+    if len(selection) and selection not in tabs:
+        as_project = input(f'Start {selection} in project mode? [y,N] >')
         if as_project.upper() == 'Y':
             as_project = True
         else:
@@ -117,10 +131,12 @@ def handle_result(
     # This is the dir we clone repos into, for me it's not a big deal if they get cloned to the
     # first dir. But some people might want to pick which dir to clone to? How could that be
     # supported?
-    projects_root = opts.dirs[0]
 
-    if not answer:
-        return
+    # TODO: make it possilbe to mnto fail if only --dirfile is used
+    if opts.dirs:
+        projects_root = opts.dirs[0]
+    else:
+        projects_root = get_dirs_from_file(opts.dirfile)[0]
 
     (path, as_project) = answer
     path, *rest = path.split()
