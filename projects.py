@@ -121,6 +121,11 @@ def load_main(args, opts):
                 "projects",
                 'printf "{0}"'.format("\n".join(projects)),
             ),
+            "ctrl-o": (
+                "history",
+                # TODO: make a version that show's uniqueness?
+                "tac /home/zach/.config/kitty/meow/history",
+            ),
             "alt-l": (
                 "tabs&project",
                 'printf "{0}"'.format("\n".join(tabs_and_projects)),
@@ -195,6 +200,11 @@ def load_handler(args: List[str], answer: str, target_window_id: int, boss: Boss
         return
 
     for selection in answer:
+        # NOTE: selection can be a variety of patterns
+        # - meow
+        # - ~/.config/kitty/meow/
+        # - kitty-meow git@github.com:taylorzr/kitty-meow.git
+        # - meow 2023-03-23T20:52:21.841221
         path, *rest = selection.split()
         dir = os.path.basename(path)
 
