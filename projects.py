@@ -123,7 +123,7 @@ def load_main(args, opts):
             ),
             "ctrl-o": (
                 "history",
-                # TODO: make a version that show's uniqueness?
+                # TODO: make a version that shows uniqueness?
                 "tac /home/zach/.config/kitty/meow/history",
             ),
             "alt-l": (

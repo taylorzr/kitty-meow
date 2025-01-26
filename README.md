@@ -8,9 +8,12 @@ create new sessions as well.
 
 ![Meow Screenshot](screenshot.png)
 
+
 ## Usage
 
-Call your project mapping, e.g. ctrl-p, and hit enter to select. Initially, tabs & local projects
+[1-minute demo](https://www.youtube.com/watch?v=Qm8Xl4GAylI)
+
+Call your project mapping, e.g. ctrl-space, and hit enter to select. Initially, tabs & local projects
 are listed, but you can show remote, local project only, or tabs only.
 
 On select
@@ -41,11 +44,12 @@ For example:
 
 env GITHUB_TOKEN=<github_token>
 env BIN_PATH=/opt/homebrew/bin/ # probably only needed on macs
-map ctrl+p kitten meow/projects.py load --dir $HOME/code/ --user my_cool_self --org my_cool_org
-map ctrl+shift+n kitten meow/projects.py new --dir $HOME/code/
-map ctrl+shift+x kitten meow/kill.py
-map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
+
+map ctrl+space kitten meow/projects.py load --dir $HOME/code/ --dir $HOME --dir $HOME/.config/kitty/meow --user taylorzr
 map ctrl+- goto_tab -1
+map ctrl+shift+n kitten meow/projects.py new --dir $HOME/code/
+map ctrl+shift+g kitten meow/cache.py --org AquaTeenHungerForce
+map ctrl+shift+x kitten meow/kill.py
 ```
 
 ## Kitty Mappings
@@ -119,9 +123,10 @@ You need to put env in your kitty config, not .zshrc. More about that [here](htt
 
 ## TODO
 
-- record short video demo
 - configurable fzf bindings
 - selectable dir to clone to?
   - some people might use 1 dir for work and one for personal?
 - maybe use flags like --login=user=taylorzr --login=org=my_cool_org
 - combine the scripts into one cli with subcommands
+- caching all repos should remove unknown files, e.g. i stop caching taylorzr, i need to delete
+  cache_taylorzr
