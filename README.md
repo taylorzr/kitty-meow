@@ -27,7 +27,7 @@ On select
 git clone git@github.com:taylorzr/kitty-meow.git ~/.config/kitty/meow
 ```
 
-Requires [fzf](https://github.com/junegunn/fzf/).
+Requires [fzf](https://github.com/junegunn/fzf/) and tac (provided by coreutils).
 
 ## Getting Started
 

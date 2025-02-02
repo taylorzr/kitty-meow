@@ -127,7 +127,7 @@ def load_main(args, opts):
             "ctrl-i": (
                 "history",
                 # TODO: make a version that shows uniqueness?
-                "tac /home/zach/.config/kitty/meow/history",
+                f"{bin_path}tac ~/.config/kitty/meow/history",
             ),
             "ctrl-a": (
                 "tabs&projects",
