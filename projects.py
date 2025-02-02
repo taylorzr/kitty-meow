@@ -107,27 +107,30 @@ def load_main(args, opts):
     for user in opts.users:
         flags.append(f"--user {user}")
 
+    # NOTE: don't use
+    # - ctrl-p -> fzf previous item in list
+    # - ctrl-n -> fzf next item in list
     binds, header = meow.binds_and_header(
         {
-            "ctrl-r": (
-                "remote",
-                f"{bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)}",
-            ),
             "ctrl-t": (
                 "tabs",
                 'printf "{0}"'.format("\n".join(tabs)),
             ),
-            "alt-p": (
-                "projects",
+            "ctrl-o": (
+                "local",
                 'printf "{0}"'.format("\n".join(projects)),
             ),
-            "ctrl-o": (
+            "ctrl-r": (
+                "remote",
+                f"{bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)}",
+            ),
+            "ctrl-i": (
                 "history",
                 # TODO: make a version that shows uniqueness?
                 "tac /home/zach/.config/kitty/meow/history",
             ),
-            "alt-l": (
-                "tabs&project",
+            "ctrl-a": (
+                "tabs&projects",
                 'printf "{0}"'.format("\n".join(tabs_and_projects)),
             ),
         }
