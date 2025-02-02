@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2025-2-1
+
+### Fixed
+
+- history path
+- tac path on mac
+
 ## [0.5.0] - 2025-2-1
 
 ### Changed
