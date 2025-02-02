@@ -7,17 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-2-1
+
+### Changed
+
+- use ctrl- for all fzf bindings
+- cache_all_repos.py renamed to cache.py
+  - instead of `map ctrl+shift+g kitten meow/cache_all_repos.py ...`
+  - use `map ctrl+shift+g kitten meow/cache.py ...`
+- kill_old_projects.py renamed to kill.py
+  - instead of `map ctrl+shift+x kitten meow/kill_old_projects.py`
+  - use `map ctrl+shift+x kitten meow/kill.py`
+- kill now defaults to any project, ctrl-o to kill old projects
+
 ## [0.4.0] - 2024-4-20
 
 ### Changed
 
 - combined python scripts for load & new into single file
-  - instead of e.g.
-    - ctrl+p kitten meow/load_project.py ...
-    - ctrl+shift+n kitten meow/load_project.py ...
-  - use e.g.
-    - ctrl+p kitten meow/projects.py load ...
-    - ctrl+shift+n kitten meow/projects.py new ...
+  - instead of
+    - `ctrl+p kitten meow/load_project.py ...`
+    - `ctrl+shift+n kitten meow/load_project.py ...`
+  - use
+    - `ctrl+p kitten meow/projects.py load ...`
+    - `ctrl+shift+n kitten meow/projects.py new ...`
 
 ### Added
 
@@ -78,7 +91,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[unreleased]: https://github.com/taylorzr/meow/compare/v0.2.0...HEAD
+[unreleased]: https://github.com/taylorzr/meow/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/taylorzr/meow/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/taylorzr/meow/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/taylorzr/meow/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/taylorzr/meow/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/taylorzr/meow/compare/v0.0.4...v0.1.0
