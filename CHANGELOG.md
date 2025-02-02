@@ -11,11 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- use ctrl- for all fzf bindings
 - cache_all_repos.py renamed to cache.py
-- kill now defaults to any project, ctrl-o to kill old projects
+  - instead of `map ctrl+shift+g kitten meow/cache_all_repos.py ...`
+  - use `map ctrl+shift+g kitten meow/cache.py ...`
 - kill_old_projects.py renamed to kill.py
   - instead of `map ctrl+shift+x kitten meow/kill_old_projects.py`
   - use `map ctrl+shift+x kitten meow/kill.py`
+- kill now defaults to any project, ctrl-o to kill old projects
 
 ## [0.4.0] - 2024-4-20
 

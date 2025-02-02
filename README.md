@@ -8,7 +8,6 @@ create new sessions as well.
 
 ![Meow Screenshot](screenshot.png)
 
-
 ## Usage
 
 [1-minute demo](https://www.youtube.com/watch?v=Qm8Xl4GAylI)
@@ -28,7 +27,7 @@ On select
 git clone git@github.com:taylorzr/kitty-meow.git ~/.config/kitty/meow
 ```
 
-Depends on [fzf](https://github.com/junegunn/fzf/) and [jq](https://github.com/stedolan/jq).
+Requires [fzf](https://github.com/junegunn/fzf/).
 
 ## Getting Started
 
@@ -68,6 +67,7 @@ map ctrl+p kitten meow/project.py load --dir $HOME/code/ --user <you> --org <git
 
 - when a dir ends in /, meow shows all it's subdirs
 - otherwise, meow only shows that specific dir
+- remote repos are cloned into the first --dir
 
 For example, I use:
 
@@ -93,14 +93,14 @@ binding that will cache all the repos for orgs. This is a manual process, just r
 need to update the list of projects for an org.
 
 ```conf
-map ctrl+shift+g kitten meow/cache_all_repos.py --org my_cool_org
+map ctrl+shift+g kitten meow/cache.py --org my_cool_org
 ```
 
 Just like the projects.py load mapping, you can specify multiple users and orgs in your cache mapping.
 You might want these to be different than users and orgs in your projects.py load mapping, because an
 org might have lots of repos, but your user just a few. Any uncached users/orgs repos will be
 loaded from github on every call to projects.py load. And the cache never expires, you must call
-cache_all_repos to refresh it.
+cache.py to refresh it.
 
 ## Github Auth
 
@@ -128,5 +128,5 @@ You need to put env in your kitty config, not .zshrc. More about that [here](htt
   - some people might use 1 dir for work and one for personal?
 - maybe use flags like --login=user=taylorzr --login=org=my_cool_org
 - combine the scripts into one cli with subcommands
-- caching all repos should remove unknown files, e.g. i stop caching taylorzr, i need to delete
-  cache_taylorzr
+  - we could then have a fzf binding for loading new projects from the normal project selection
+- caching all repos should remove unknown files, e.g. i stop caching taylorzr, i need to delete cache_taylorzr

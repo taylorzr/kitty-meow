@@ -52,7 +52,7 @@ def main(args: List[str]) -> str:
                 "any",
                 'printf "{0}"'.format("\n".join(all_tabs)),
             ),
-        }
+        }, emoji="🐈💀"
     )
     args = [
         f"{bin_path}fzf",
@@ -60,7 +60,7 @@ def main(args: List[str]) -> str:
         "--reverse",
         f"--header={header}",
         f"--bind={binds}",
-        f"--prompt=💀🐈kill> ",
+        f"--prompt=🐈💀 kill > ",
     ]
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out = p.communicate(input="\n".join(all_tabs).encode())[0]

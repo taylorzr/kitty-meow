@@ -37,7 +37,7 @@ parser.add_argument(
 
 def new_main(args, opts):
     try:
-        url = input("🐈 New project\nenter name or github url: ")
+        url = input("🐈 new (name or github url): ")
         return url
     except KeyboardInterrupt:
         return ""
@@ -142,7 +142,7 @@ def load_main(args, opts):
         "--reverse",
         f"--header={header}",
         f"--bind={binds}",
-        "--prompt=🐈project> ",
+        "--prompt=🐈 meow > ",
     ]
     p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out = p.communicate(input="\n".join(tabs_and_projects).encode())[0]
