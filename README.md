@@ -126,7 +126,9 @@ You need to put env in your kitty config, not .zshrc. More about that [here](htt
 - configurable fzf bindings
 - selectable dir to clone to?
   - some people might use 1 dir for work and one for personal?
-- maybe use flags like --login=user=taylorzr --login=org=my_cool_org
+- maybe use flags like --remote=github_user=taylorzr --remote=github_org=my_cool_org --remote=ssh://<some:ip>/code/
+- is there a way to check user or org, like --remote=github.com:taylorzr, would need to query gql
+  differently
 - combine the scripts into one cli with subcommands
   - we could then have a fzf binding for loading new projects from the normal project selection
 - caching all repos should remove unknown files, e.g. i stop caching taylorzr, i need to delete cache_taylorzr
