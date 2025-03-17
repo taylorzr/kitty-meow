@@ -41,25 +41,24 @@ def get_repos(login, type):
         github.get_repos(login, type)
 
 
-def get_ssh_repos(uri):
+def get_ssh_repos(url):
     # TODO: cache by host / path
     # cache = f"{os.path.expanduser('~')}/.config/kitty/meow/cache_{login}"
-    u = urlparse(uri)
-    dest = []
+    uri = urlparse(url)
+    dest = ""
 
-    if u.username:
-        dest.append(u.username)
-        dest.append("@")
+    if uri.username:
+        dest += uri.username
+        dest += "@"
 
-    dest.append(u.hostname)
+    dest += uri.hostname
 
-    if u.port:
-        dest.append("-p")
-        dest.append(u.port)
+    if uri.port:
+        dest += f" -p {uri.port}"
 
     # TODO: error is we don't have the parts we need, at least a dest & path
 
-    result = subprocess.run(f"ssh {' '.join(dest)} 'ls -d {u.path.lstrip("/")}*'", shell=True, capture_output=True, text=True)
+    result = subprocess.run(f"ssh {dest} 'ls -d {uri.path.lstrip("/")}*'", shell=True, capture_output=True, text=True)
 
     if result.returncode != 0:
         print("Error:", result.stderr)
@@ -67,7 +66,7 @@ def get_ssh_repos(uri):
     for line in result.stdout.splitlines():
         if line:
             project = line.split("/")[-1]
-            print(project, uri + project)
+            print(project, url + project)
 
 
 if __name__ == "__main__":
