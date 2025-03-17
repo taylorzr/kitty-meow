@@ -46,11 +46,9 @@ def main_load(args, opts):
                 if f.is_dir():
                     name = os.path.basename(f.path)
                     pretty_path = f.path.replace(os.path.expanduser("~"), "~", 1)
-                    # TODO: can we use term escape codes to make the 2nd part lighter?
-                    line = name + " " + pretty_path
-                    projects.append(line)
+                    projects.append(pretty_path)
                     if name not in tabs_and_projects:
-                        tabs_and_projects.append(line)
+                        tabs_and_projects.append(pretty_path)
         else:
             name = os.path.basename(dir)
             projects.append(dir)
@@ -128,7 +126,12 @@ def main_load(args, opts):
         name, *rest = selection.split()
         if len(rest) > 2:
             raise ValueError(f"expected <= 2 parts, a project name and optionally a uri, but got {len(rest)} parts")
+
         url = rest[0] if len(rest) > 0 else ""
+        if not url and "/" in name:
+            url = name
+            name = os.path.basename(f.path)
+
         project = [name, url]
 
         uri = urlparse(url)
