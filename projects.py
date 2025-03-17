@@ -130,7 +130,7 @@ def main_load(args, opts):
         url = rest[0] if len(rest) > 0 else ""
         if not url and "/" in name:
             url = name
-            name = os.path.basename(f.path)
+            name = os.path.basename(url)
 
         project = [name, url]
 
@@ -239,7 +239,7 @@ def load_project(boss, name, path_or_url):
         ), capture_output=True).stdout.decode().strip()
         boss.remote_control(("send-text", "--match", f"id:{window_id}", "${EDITOR:-vim}\n"))
         boss.remote_control(
-            ("launch", "--type", "window", "--match", f"id:{window_id}", "--title", "current", "--cwd", "current", "--dont-take-focus"),
+            ("launch", "--type", "window", "--match", f"id:{window_id}", "--title", "current", "--cwd", path_or_url, "--dont-take-focus"),
             # FIX: title works for the first window, but children don't inherit
             # probably need to edit the splitter binding
         )
