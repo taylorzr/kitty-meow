@@ -1,4 +1,5 @@
 from kittens.tui.handler import kitten_ui
+import time
 from urllib.parse import urlparse
 import argparse
 import json
@@ -11,6 +12,8 @@ from typing import List
 from kitty.boss import Boss
 
 import meow
+
+opts = None
 
 
 @kitten_ui(allow_remote_control=True)
@@ -25,20 +28,13 @@ def main(args: List[str]) -> str:
         raise ValueError(f"i don't know what do to with command {opts.command}")
 
 
-def handle_result(
-    args: List[str], answer: str, target_window_id: int, boss: Boss
-) -> None:
-    opts = parser.parse_args(args[1:])
-
-    if opts.command == "load":
-        return handle_load(args, answer, target_window_id, boss)
-    elif opts.command == "new":
-        return handle_new(args, answer, target_window_id, boss)
+def handle_result(args, answer, target_window_id, boss):
+    pass
 
 
 def main_load(args, opts):
     cp = main.remote_control(["ls"], capture_output=True)
-    kitty_tabs = json.loads(cp.stdout.decode("utf-8").strip("\n"))[0]["tabs"]
+    kitty_tabs = json.loads(cp.stdout.decode().strip("\n"))[0]["tabs"]
 
     tabs = [tab["title"] for tab in kitty_tabs]
     tabs_and_projects = [tab["title"] for tab in kitty_tabs]
@@ -138,7 +134,6 @@ def main_load(args, opts):
         uri = urlparse(url)
         # TODO: handle non-github urls
         if url and "git@github.com:" in uri.path and not uri.scheme == "ssh":
-            opts = parser.parse_args(args[1:])
             projects_root = opts.dirs[0]
             # NOTE: We clone into the first --dir flag called. Does this need to be configurable,
             # how could we do that?
@@ -150,51 +145,41 @@ def main_load(args, opts):
 
         stuff.append(project)
 
-    return stuff
-
-
-def main_new(args, opts):
-    try:
-        url = input("🐈 new (name or github url): ")
-        return url
-    except KeyboardInterrupt:
-        return ""
-
-
-def handle_load(args: List[str], stuff, target_window_id: int, boss: Boss):
     if not stuff:
         return
 
     for (name, url) in stuff:
-        load_project(boss, name, url)
+        # load_project(boss, name, url)
+        load_project(main, name, url)
 
 
-def handle_new(args: List[str], answer: str, target_window_id: int, boss: Boss):
-    opts = parser.parse_args(args[1:])
+def main_new(args, opts):
+    try:
+        name_or_url = input("🐈 new (name or github url): ")
+    except KeyboardInterrupt:
+        pass
 
     # This is the dir we clone repos into, for me it's not a big deal if they get cloned to the
     # first dir. But some people might want to pick which dir to clone to? How could that be
     # supported?
     projects_root = opts.dirs[0]
 
-    if not answer:
+    if not name_or_url:
         return
-    elif "/" in answer:
-        # Note: This is an attempt to see if the answer is a git url or not, e.g.
-        #   - git@github.com:taylorzr/kitty-meow.git
-        #   - https://github.com/taylorzr/kitty-meow.git
-        github_url = answer
-        name = re.split("[/.]", github_url)[2]
-        print(f"cloning into {name}...")
-        path = f"{projects_root}/{name}"
-        subprocess.run(["git", "clone", github_url, path])
+
+    # Note: This is an attempt to see if the name_or_url is a git url or not, e.g.
+    #   - git@github.com:taylorzr/kitty-meow.git
+    #   - https://github.com/taylorzr/kitty-meow.git
+    if "/" in name_or_url:
+        name = re.split("[/.]", name_or_url)[2]
+        clone_path = f"{projects_root}/{name}"
+        cp = subprocess.run(["git", "clone", name_or_url, clone_path])
+        # TODO: check for errors on completed process
     else:
-        new_local = answer
-        name = new_local
-        path = f"{projects_root}/{name}"
+        path = f"{projects_root}/{name_or_url}"
         os.makedirs(path, exist_ok=True)
 
-    load_project(boss, name, path)
+    load_project(main, name, path)
 
 
 def load_project(boss, name, path_or_url):
@@ -209,29 +194,28 @@ def load_project(boss, name, path_or_url):
         history.close()
 
     # NOTE: if project already open, just switch to it
-    kitty_ls = json.loads(boss.call_remote_control(None, ("ls",)))
+    kitty_ls = json.loads(boss.remote_control(["ls"], capture_output=True).stdout.decode())
     for tab in kitty_ls[0]["tabs"]:
         if tab["title"] == tab_title:
-            boss.call_remote_control(None, ("focus-tab", "--match", f"title:^{tab_title}$"))
+            boss.remote_control(["focus-tab", "--match", f"title:^{tab_title}$"])
             return
 
     # start editor and another window
     if uri.scheme == "ssh":
         path = uri.path.lstrip("/")
-        window_id = boss.call_remote_control(None, (
+        window_id = boss.remote_control((
             "launch", "--type", "tab", "--tab-title", tab_title,
             # FIX: for some reason, passing a command breaks starting new windows in ssh
             # FIX: start editor not vim
-            "kitty", "+kitten", "ssh", "-t", uri.netloc, f"cd {path}; vim"
-            # "kitty", "+kitten", "ssh", "192.168.1.10"
-        ))
-        parent_window = boss.window_id_map.get(int(window_id))
-        # command.append("kitty", "+kitten", "ssh", "-t", "192.168.1.10", "cd code/homelab; vim")
-        # FIX: for some reason, passing a command breaks starting new windows in ssh
-        # FIX: start user shell not bash
-        boss.call_remote_control(parent_window, ("launch", "kitten", "ssh", "-t", uri.netloc, f"cd {path}; bash"))
+            # "kitty", "+kitten", "ssh", "-t", uri.netloc, f"cd {path}; vim"
+            "kitty", "+kitten", "ssh", uri.netloc,
+        ), capture_output=True).stdout.decode().strip("\n")
+        time.sleep(0.5)
+        boss.remote_control(("send-text", "--match", f"id:{window_id}", f"cd {path}\nvim\n"))
+        time.sleep(0.5)
+        boss.remote_control(("launch", "--match", f"id:{window_id}", "--type", "window", "--cwd", "current"))
     else:
-        window_id = boss.call_remote_control(None, (
+        window_id = boss.remote_control((
             "launch",
             "--type",
             "tab",
@@ -241,12 +225,10 @@ def load_project(boss, name, path_or_url):
             name,
             "--cwd",
             path_or_url,
-        ))
-        parent_window = boss.window_id_map.get(int(window_id))
-        boss.call_remote_control(parent_window, ("send-text", "${EDITOR:-vim}\n"))
-        boss.call_remote_control(
-            parent_window,
-            ("launch", "--type", "window", "--title", "current", "--dont-take-focus", "--cwd", path_or_url),
+        ), capture_output=True).stdout.decode().strip()
+        boss.remote_control(("send-text", "--match", f"id:{window_id}", "${EDITOR:-vim}\n"))
+        boss.remote_control(
+            ("launch", "--type", "window", "--match", f"id:{window_id}", "--title", "current", "--cwd", "current", "--dont-take-focus"),
             # FIX: title works for the first window, but children don't inherit
             # probably need to edit the splitter binding
         )
