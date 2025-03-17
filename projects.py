@@ -152,7 +152,6 @@ def main_load(args, opts):
         return
 
     for (name, url) in stuff:
-        # load_project(boss, name, url)
         load_project(main, name, url)
 
 
