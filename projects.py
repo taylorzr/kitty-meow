@@ -203,13 +203,22 @@ def load_project(boss, name, path_or_url):
     # start editor and another window
     if uri.scheme == "ssh":
         path = uri.path.lstrip("/")
-        window_id = boss.remote_control((
+        command = [
             "launch", "--type", "tab", "--tab-title", tab_title,
             # FIX: for some reason, passing a command breaks starting new windows in ssh
             # FIX: start editor not vim
             # "kitty", "+kitten", "ssh", "-t", uri.netloc, f"cd {path}; vim"
-            "kitty", "+kitten", "ssh", uri.netloc,
-        ), capture_output=True).stdout.decode().strip("\n")
+            "kitty", "+kitten", "ssh",
+        ]
+        ssh_dest = uri.netloc
+        port = ""
+        if ":" in ssh_dest:
+            parts = ssh_dest.split(":")
+            ssh_dest, port = parts[0], parts[1]
+        command.append(ssh_dest)
+        if port:
+            command.extend("-p", port)
+        window_id = boss.remote_control(command, capture_output=True).stdout.decode().strip("\n")
         time.sleep(0.5)
         boss.remote_control(("send-text", "--match", f"id:{window_id}", f"cd {path}\nvim\n"))
         time.sleep(0.5)
