@@ -80,7 +80,11 @@ def main_load(args, opts):
             ),
             "ctrl-r": (
                 "remote",
-                f"{bin_path}python3 ~/.config/kitty/meow/get_all_repos.py {' '.join(flags)}",
+                f"{bin_path}python3 ~/.config/kitty/meow/fetch.py git {' '.join(flags)}",
+            ),
+            "ctrl-s": (
+                "ssh",
+                f"{bin_path}python3 ~/.config/kitty/meow/fetch.py ssh {' '.join(flags)}",
             ),
             "ctrl-i": (
                 "history",

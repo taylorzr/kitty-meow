@@ -63,7 +63,7 @@ def run_query(query, login, cursor=None):
         )
 
 
-def get_repos(login, type):
+def print_repos(login, type):
     if type == "organization":
         query = org_query
     elif type == "user":

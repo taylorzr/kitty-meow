@@ -1,11 +1,20 @@
-import os
 import argparse
+import os
 import subprocess
+from enum import Enum
 from urllib.parse import urlparse
 
 import github
 
 parser = argparse.ArgumentParser(description="meow")
+
+
+class Modes(Enum):
+    git = "git"
+    ssh = "ssh"
+
+
+parser.add_argument("mode", type=Modes, choices=list(Modes))
 
 parser.add_argument(
     "--org",
@@ -32,16 +41,16 @@ parser.add_argument(
 )
 
 
-def get_repos(login, type):
+def print_repos(login, type):
     cache = f"{os.path.expanduser('~')}/.config/kitty/meow/cache_{login}"
     try:
         with open(cache, "r") as file:
             print(file.read())
     except FileNotFoundError:
-        github.get_repos(login, type)
+        github.print_repos(login, type)
 
 
-def get_ssh_repos(url):
+def print_ssh_repos(url):
     # TODO: cache by host / path
     # cache = f"{os.path.expanduser('~')}/.config/kitty/meow/cache_{login}"
     uri = urlparse(url)
@@ -56,24 +65,33 @@ def get_ssh_repos(url):
     if uri.port:
         dest += f" -p {uri.port}"
 
-    # TODO: error is we don't have the parts we need, at least a dest & path
+    # TODO: error if we don't have the parts we need, at least a dest & path
 
-    result = subprocess.run(f"ssh {dest} 'ls -d {uri.path.lstrip("/")}*'", shell=True, capture_output=True, text=True)
+    result = subprocess.run(
+        f"ssh -o ConnectTimeout=1 {dest} 'ls -d {uri.path.lstrip("/")}*'",
+        shell=True,
+        capture_output=True,
+        text=True,
+    )
 
     if result.returncode != 0:
-        print("Error:", result.stderr)
-
-    for line in result.stdout.splitlines():
-        if line:
-            project = line.split("/")[-1]
-            print(project, url + project)
+        print("Error:", result.stderr.rstrip())
+    else:
+        for line in result.stdout.splitlines():
+            if line:
+                project = line.split("/")[-1]
+                print(project, url)
 
 
 if __name__ == "__main__":
     opts = parser.parse_args()
-    for uri in opts.ssh:
-        get_ssh_repos(uri)
-    for user in opts.users:
-        get_repos(login=user, type="user")
-    for org in opts.orgs:
-        get_repos(login=org, type="organization")
+
+    if opts.mode == Modes.ssh:
+        for uri in opts.ssh:
+            print_ssh_repos(uri)
+
+    if opts.mode == Modes.git:
+        for user in opts.users:
+            print_repos(login=user, type="user")
+        for org in opts.orgs:
+            print_repos(login=org, type="organization")
