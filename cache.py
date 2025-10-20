@@ -28,13 +28,13 @@ def main(args: List[str]) -> str:
 
     for user in opts.users:
         cache = f"{os.path.expanduser('~')}/.config/kitty/meow/cache_{user}"
-        repos = github.get_repos(user, type="user")
+        repos = github.print_repos(user, type="user")
         with open(cache, "w") as file:
             file.write("\n".join(repos))
 
     for org in opts.orgs:
         cache = f"{os.path.expanduser('~')}/.config/kitty/meow/cache_{org}"
-        repos = github.get_repos(org, type="organization")
+        repos = github.print_repos(org, type="organization")
         with open(cache, "w") as file:
             file.write("\n".join(repos))
 

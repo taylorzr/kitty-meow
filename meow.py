@@ -10,4 +10,3 @@ def binds_and_header(mapping, emoji="🐈"):
     binds = ','.join(bind_parts)
     header = ' | '.join(header_parts)
     return binds, header
-
