@@ -67,8 +67,13 @@ def print_ssh_repos(url):
 
     # TODO: error if we don't have the parts we need, at least a dest & path
 
+    if not uri.path.endswith("/"):
+        project = url.split("/")[-1]
+        print(project, url)
+        return
+
     result = subprocess.run(
-        f"ssh -o ConnectTimeout=1 {dest} 'ls -d {uri.path.lstrip("/")}*'",
+        f"ssh -o ConnectTimeout=5 {dest} 'ls -d {uri.path.lstrip("/")}*'",
         shell=True,
         capture_output=True,
         text=True,
@@ -80,7 +85,7 @@ def print_ssh_repos(url):
         for line in result.stdout.splitlines():
             if line:
                 project = line.split("/")[-1]
-                print(project, url)
+                print(project, url + project)
 
 
 if __name__ == "__main__":
