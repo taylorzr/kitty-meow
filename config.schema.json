@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/taylorzr/kitty-meow/config.schema.json",
+  "title": "kitty-meow config",
+  "description": "Configuration for kitty-meow kittens (~/.config/kitty/meow/config.toml)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "dirs": {
+      "type": "array",
+      "description": "Directories to search for projects. Paths ending in '/' list all subdirectories as projects. Supports ~ expansion.",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        ["~/code/", "~/.config/kitty/meow"]
+      ]
+    },
+    "template": {
+      "type": "array",
+      "description": "Commands to run when opening a new project tab (e.g. editor and shell).",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        ["nvim", "$SHELL"]
+      ]
+    },
+    "fzf": {
+      "type": "string",
+      "description": "Path to the fzf binary. Useful on macOS where fzf may not be on PATH (e.g. /opt/homebrew/bin/fzf).",
+      "examples": ["/opt/homebrew/bin/fzf", "fzf"]
+    },
+    "github": {
+      "type": "array",
+      "description": "GitHub usernames and/or organization names to fetch remote repos from.",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        ["taylorzr", "AquaTeenHungerForce"]
+      ]
+    },
+    "keybindings": {
+      "type": "object",
+      "description": "fzf key bindings for switching between project sources. Do not use ctrl-p or ctrl-n (reserved by fzf for navigation).",
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "type": "string",
+          "description": "Show all tabs and local projects (default view).",
+          "examples": ["ctrl-a"]
+        },
+        "remote": {
+          "type": "string",
+          "description": "Fetch and show GitHub remote repos.",
+          "examples": ["ctrl-r"]
+        },
+        "history": {
+          "type": "string",
+          "description": "Show recently opened projects from history.",
+          "examples": ["ctrl-i"]
+        },
+        "open": {
+          "type": "string",
+          "description": "Show currently open kitty tabs.",
+          "examples": ["ctrl-t"]
+        }
+      }
+    }
+  }
+}

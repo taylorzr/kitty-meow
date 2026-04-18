@@ -1,0 +1,18 @@
+# NOTE: dirs ending in / list all projects within
+dirs  = [
+  "~/code/",
+  "~/.config/kitty/meow",
+]
+
+template = ["nvim", "$SHELL"]
+
+# NOTE: on macos, typically have to define full path to fzf
+fzf = "/opt/homebrew/bin/fzf"
+
+github = ["taylorzr", "AquaTeenHungerForce"]
+
+[keybindings]
+default = "ctrl-a"
+remote = "ctrl-r"
+history = "ctrl-i"
+open = "ctrl-t"

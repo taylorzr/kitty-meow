@@ -61,7 +61,10 @@ def new_handler(args: List[str], answer: str, target_window_id: int, boss: Boss)
         dir = re.split("[/.]", github_url)[2]
         print(f"cloning into {dir}...")
         path = f"{projects_root}/{dir}"
-        subprocess.run(["git", "clone", github_url, path])
+        result = subprocess.run(["git", "clone", github_url, path])
+        if result.returncode != 0:
+            print(f"error: git clone failed (exit code {result.returncode})")
+            return
     else:
         new_local = answer
         dir = new_local
