@@ -20,7 +20,8 @@ func getSets() []setConfig {
 }
 
 func newSetsCmd() *cobra.Command {
-	return &cobra.Command{
+	var mode string
+	cmd := &cobra.Command{
 		Use:   "sets",
 		Short: "List configured sets",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -29,11 +30,17 @@ func newSetsCmd() *cobra.Command {
 				return nil
 			}
 			var items []string
+			prefix := ""
+			if mode != "" {
+				prefix = mode + "\t"
+			}
 			for _, b := range sets {
-				items = append(items, fmt.Sprintf("%-30s \033[2m%s\033[0m", b.Name, strings.Join(b.Projects, ", ")))
+				items = append(items, prefix+fmt.Sprintf("%-30s \033[2m%s\033[0m", b.Name, strings.Join(b.Projects, ", ")))
 			}
 			fmt.Print(strings.Join(items, "\n") + "\n")
 			return nil
 		},
 	}
+	cmd.Flags().StringVar(&mode, "mode", "", "Prefix each item with this mode (open|close) for use with fzf --with-nth")
+	return cmd
 }

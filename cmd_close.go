@@ -13,11 +13,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-func newKillCmd() *cobra.Command {
+func newCloseCmd() *cobra.Command {
 	var days int
 
 	cmd := &cobra.Command{
-		Use:   "kill",
+		Use:   "close",
 		Short: "Close old tabs via fzf",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			debug, _ := cmd.Flags().GetBool("debug")
@@ -84,7 +84,7 @@ func newKillCmd() *cobra.Command {
 
 			// TODO: abstract out the fzf invocation since it's basically the same in all commands
 			fzf := exec.Command(viper.GetString("fzf"),
-				"--prompt=🐈💀 kill > ",
+				"--prompt=🐈💀 close > ",
 				"--header="+header,
 				"--bind="+binds,
 				"--reverse",

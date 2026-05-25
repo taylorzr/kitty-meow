@@ -93,7 +93,7 @@ func main() {
 	rootCmd.AddCommand(newSetsCmd())
 	rootCmd.AddCommand(newCacheCmd())
 	rootCmd.AddCommand(newSwitchCmd())
-	rootCmd.AddCommand(newKillCmd())
+	rootCmd.AddCommand(newCloseCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

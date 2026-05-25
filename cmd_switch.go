@@ -21,6 +21,7 @@ func newSwitchCmd() *cobra.Command {
 	viper.SetDefault("keybindings.set", "ctrl-s")
 	viper.SetDefault("keybindings.history", "ctrl-r")
 	viper.SetDefault("keybindings.default", "ctrl-a")
+	viper.SetDefault("keybindings.close", "ctrl-x")
 	cmd := &cobra.Command{
 		Use:   "switch",
 		Short: "Switch project via fzf",
@@ -30,18 +31,19 @@ func newSwitchCmd() *cobra.Command {
 				return err
 			}
 
-			initial, err := runProjects(false, "--open", "--local")
+			initial, err := runProjects(false, "open", "--open", "--local")
 			if err != nil {
 				return err
 			}
 
 			binds, header := bindsAndHeader("🐈", []bind{
-				{viper.GetString("keybindings.remote"), "remote", fmt.Sprintf("%s projects --remote 2>&1", exe)},
-				{viper.GetString("keybindings.local"), "local", fmt.Sprintf("%s projects --local 2>&1", exe)},
-				{viper.GetString("keybindings.open"), "open", fmt.Sprintf("%s projects --open 2>&1", exe)},
-				{viper.GetString("keybindings.history"), "history", fmt.Sprintf("%s history 2>&1", exe)},
-				{viper.GetString("keybindings.set"), "set", fmt.Sprintf("%s sets 2>&1", exe)},
-				{viper.GetString("keybindings.default"), "default", fmt.Sprintf("%s projects --open --local 2>&1", exe)},
+				{viper.GetString("keybindings.remote"), "remote", fmt.Sprintf("%s projects --remote --mode=open 2>&1", exe)},
+				{viper.GetString("keybindings.local"), "local", fmt.Sprintf("%s projects --local --mode=open 2>&1", exe)},
+				{viper.GetString("keybindings.open"), "open", fmt.Sprintf("%s projects --open --mode=open 2>&1", exe)},
+				{viper.GetString("keybindings.history"), "history", fmt.Sprintf("%s history --mode=open 2>&1", exe)},
+				{viper.GetString("keybindings.set"), "set", fmt.Sprintf("%s sets --mode=open 2>&1", exe)},
+				{viper.GetString("keybindings.default"), "default", fmt.Sprintf("%s projects --open --local --mode=open 2>&1", exe)},
+				{viper.GetString("keybindings.close"), "close", fmt.Sprintf("%s projects --open --mode=close 2>&1", exe)},
 			})
 
 			fzf := exec.Command(viper.GetString("fzf"),
@@ -52,6 +54,8 @@ func newSwitchCmd() *cobra.Command {
 				"--reverse",
 				"--ansi",
 				"--multi",
+				"--delimiter=\t",
+				"--with-nth=2..",
 			)
 
 			dryRun, _ := cmd.Flags().GetBool("dry-run")
@@ -95,8 +99,16 @@ func newSwitchCmd() *cobra.Command {
 				if line == "" {
 					continue
 				}
-				if err := handleSelection(line, cloneDir); err != nil {
-					return err
+				mode, content, _ := strings.Cut(line, "\t")
+				if mode == "close" {
+					title := strings.Fields(ansiRe.ReplaceAllString(content, ""))[0]
+					if err := term.CloseTab(title); err != nil {
+						fmt.Fprintf(os.Stderr, "failed to close tab %q: %v\n", title, err)
+					}
+				} else {
+					if err := handleSelection(content, cloneDir); err != nil {
+						return err
+					}
 				}
 			}
 			return nil

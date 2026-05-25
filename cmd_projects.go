@@ -21,6 +21,7 @@ func aliasCol(alias string) string {
 
 func newProjectsCmd() *cobra.Command {
 	var open, local, remote, set bool
+	var mode string
 
 	cmd := &cobra.Command{
 		Use:   "projects",
@@ -36,7 +37,7 @@ func newProjectsCmd() *cobra.Command {
 			if len(include) == 0 {
 				include = []string{"--open", "--local"}
 			}
-			items, err := runProjects(false, include...)
+			items, err := runProjects(false, mode, include...)
 			if err != nil {
 				return err
 			}
@@ -50,12 +51,18 @@ func newProjectsCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&local, "local", false, "Include local projects")
 	cmd.Flags().BoolVar(&remote, "remote", false, "Include remote projects")
 	cmd.Flags().BoolVar(&set, "set", false, "Include configured sets")
+	cmd.Flags().StringVar(&mode, "mode", "", "Prefix each item with this mode (open|close) for use with fzf --with-nth")
 
 	return cmd
 }
 
-func runProjects(refresh bool, flags ...string) ([]string, error) {
+func runProjects(refresh bool, mode string, flags ...string) ([]string, error) {
 	var items []string
+
+	prefix := ""
+	if mode != "" {
+		prefix = mode + "\t"
+	}
 
 	for _, flag := range flags {
 		switch flag {
@@ -68,9 +75,9 @@ func runProjects(refresh bool, flags ...string) ([]string, error) {
 				if t.Title != "" {
 					name := nameFor(t.Title)
 					if name != t.Title {
-						items = append(items, fmt.Sprintf("%s  %s", aliasCol(t.Title), name))
+						items = append(items, prefix+fmt.Sprintf("%s  %s", aliasCol(t.Title), name))
 					} else {
-						items = append(items, fmt.Sprintf("%s  %s", aliasCol(""), t.Title))
+						items = append(items, prefix+fmt.Sprintf("%s  %s", aliasCol(""), t.Title))
 					}
 				}
 			}
@@ -87,14 +94,14 @@ func runProjects(refresh bool, flags ...string) ([]string, error) {
 							name := e.Name()
 							path := collapseHome(filepath.Join(dir, name))
 							alias := aliasFor(name)
-							items = append(items, fmt.Sprintf("%s  %s", aliasCol(alias), path))
+							items = append(items, prefix+fmt.Sprintf("%s  %s", aliasCol(alias), path))
 						}
 					}
 				} else {
 					name := filepath.Base(expandHome(dir))
 					path := collapseHome(expandHome(dir))
 					alias := aliasFor(name)
-					items = append(items, fmt.Sprintf("%s  %s", aliasCol(alias), path))
+					items = append(items, prefix+fmt.Sprintf("%s  %s", aliasCol(alias), path))
 				}
 			}
 		case "--remote":
@@ -104,12 +111,12 @@ func runProjects(refresh bool, flags ...string) ([]string, error) {
 					return nil, err
 				}
 				for _, repo := range repos {
-					items = append(items, fmt.Sprintf("%-30s %s", repo.Name, dim(repo.SSHUrl)))
+					items = append(items, prefix+fmt.Sprintf("%-30s %s", repo.Name, dim(repo.SSHUrl)))
 				}
 			}
 		case "--set":
 			for _, b := range getSets() {
-				items = append(items, fmt.Sprintf("%-30s %s", b.Name, dim(strings.Join(b.Projects, ", "))))
+				items = append(items, prefix+fmt.Sprintf("%-30s %s", b.Name, dim(strings.Join(b.Projects, ", "))))
 			}
 		}
 	}
