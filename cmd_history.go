@@ -87,7 +87,7 @@ func readHistory() ([]string, error) {
 		if tsStr != "" {
 			if t, err := parseTimestamp(tsStr); err == nil {
 				rel := dim(relativeTime(now.Sub(t)))
-				entry = aliasCol(alias) + "\t" + name + "\t" + rel
+				entry = aliasCol(alias) + "\t" + nameCol(name) + "\t" + rel
 			}
 		}
 		if entry == "" {

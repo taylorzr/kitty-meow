@@ -76,6 +76,8 @@ func main() {
 	viper.SetDefault("template", []string{"$EDITOR", "$SHELL"})
 	viper.SetDefault("fzf", "fzf")
 	viper.SetDefault("history_size", 10000)
+	viper.SetDefault("alias_spacing", 5)
+	viper.SetDefault("name_spacing", 32)
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			fmt.Fprintf(os.Stderr, "warning: config error: %v\n", err)

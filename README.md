@@ -131,5 +131,5 @@ return config
 - cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?
 - show only project name in title
 - project based templates
-  - run editor | shell | server like go run . 
+  - run editor | shell | server like go run .
 - support other git sources, like gitlab

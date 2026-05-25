@@ -35,7 +35,7 @@ func newSetsCmd() *cobra.Command {
 				prefix = mode + "\t"
 			}
 			for _, b := range sets {
-				items = append(items, prefix+aliasCol("")+"\t"+b.Name+"\t"+dim(strings.Join(b.Projects, ", ")))
+				items = append(items, prefix+aliasCol("")+"\t"+nameCol(b.Name)+"\t"+dim(strings.Join(b.Projects, ", ")))
 			}
 			fmt.Print(strings.Join(items, "\n") + "\n")
 			return nil

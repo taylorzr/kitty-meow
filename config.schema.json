@@ -30,6 +30,20 @@
         ["open", "local", "history"]
       ]
     },
+    "alias_spacing": {
+      "type": "integer",
+      "description": "Width in characters of the alias/shortname column in the project picker.",
+      "default": 5,
+      "minimum": 4,
+      "examples": [5, 8]
+    },
+    "name_spacing": {
+      "type": "integer",
+      "description": "Width in characters of the project name column; annotations (SSH URL, timestamp) align after this.",
+      "default": 40,
+      "minimum": 1,
+      "examples": [40, 50]
+    },
     "template": {
       "type": "array",
       "description": "Commands to run when opening a new project tab (e.g. editor and shell).",

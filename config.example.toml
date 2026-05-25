@@ -7,6 +7,10 @@ dirs  = [
 # Sources shown by default when switch launches (valid: open, local, remote, set, history)
 # default_sources = ["open", "local", "set"]
 
+# Column widths for the project picker display
+# alias_spacing = 5   # chars reserved for the alias/shortname column
+# name_spacing  = 40  # chars reserved for the project name (annotation aligns after this)
+
 template = ["nvim", "$SHELL"]
 
 # NOTE: on macos, typically have to define full path to fzf

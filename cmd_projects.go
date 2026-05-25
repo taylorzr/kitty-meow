@@ -14,9 +14,19 @@ func dim(s string) string {
 	return fmt.Sprintf("\033[2m%s\033[0m", s)
 }
 
-// aliasCol returns the alias padded to 5 chars and dimmed, for consistent column alignment.
+// aliasCol returns the alias padded to alias_spacing chars and dimmed.
 func aliasCol(alias string) string {
-	return dim(fmt.Sprintf("%-5s", alias))
+	w := viper.GetInt("alias_spacing")
+	return dim(fmt.Sprintf("%-*s", w, alias))
+}
+
+// nameCol pads a project name to name_spacing chars for annotation alignment.
+func nameCol(name string) string {
+	w := viper.GetInt("name_spacing")
+	if len(name) >= w {
+		return name + "  "
+	}
+	return fmt.Sprintf("%-*s", w, name)
 }
 
 func newProjectsCmd() *cobra.Command {
@@ -111,12 +121,12 @@ func runProjects(refresh bool, mode string, flags ...string) ([]string, error) {
 					return nil, err
 				}
 				for _, repo := range repos {
-					items = append(items, prefix+aliasCol("")+"\t"+repo.Name+"\t"+dim(repo.SSHUrl))
+					items = append(items, prefix+aliasCol("")+"\t"+nameCol(repo.Name)+"\t"+dim(repo.SSHUrl))
 				}
 			}
 		case "--set":
 			for _, b := range getSets() {
-				items = append(items, prefix+aliasCol("")+"\t"+b.Name+"\t"+dim(strings.Join(b.Projects, ", ")))
+				items = append(items, prefix+aliasCol("")+"\t"+nameCol(b.Name)+"\t"+dim(strings.Join(b.Projects, ", ")))
 			}
 		}
 	}
