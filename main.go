@@ -91,8 +91,6 @@ func main() {
 		Short: "Kitty terminal project manager",
 	}
 	rootCmd.AddCommand(newProjectsCmd())
-	rootCmd.AddCommand(newHistoryCmd())
-	rootCmd.AddCommand(newSetsCmd())
 	rootCmd.AddCommand(newCacheCmd())
 	rootCmd.AddCommand(newSwitchCmd())
 

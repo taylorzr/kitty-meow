@@ -52,8 +52,8 @@ func newSwitchCmd() *cobra.Command {
 				{viper.GetString("keybindings.remote"), "remote", fmt.Sprintf("%s projects --remote --mode=open 2>&1", exe)},
 				{viper.GetString("keybindings.local"), "local", fmt.Sprintf("%s projects --local --mode=open 2>&1", exe)},
 				{viper.GetString("keybindings.open"), "open", fmt.Sprintf("%s projects --open --mode=open 2>&1", exe)},
-				{viper.GetString("keybindings.history"), "history", fmt.Sprintf("%s history --mode=open 2>&1", exe)},
-				{viper.GetString("keybindings.set"), "set", fmt.Sprintf("%s sets --mode=open 2>&1", exe)},
+				{viper.GetString("keybindings.history"), "history", fmt.Sprintf("%s projects --history --mode=open 2>&1", exe)},
+				{viper.GetString("keybindings.set"), "set", fmt.Sprintf("%s projects --set --mode=open 2>&1", exe)},
 				{viper.GetString("keybindings.default"), "default", defaultCmd},
 				{viper.GetString("keybindings.close"), "close", fmt.Sprintf("%s projects --open --mode=close 2>&1", exe)},
 			})

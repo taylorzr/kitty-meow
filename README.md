@@ -128,6 +128,8 @@ return config
 
 ## TODO
 
+- add back in a close old projects
+  - can ctrl-x default to all projects, but ctrl-shift-x toggleg all/old?
 - cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?
 - show only project name in title
 - project based templates

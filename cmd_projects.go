@@ -31,7 +31,7 @@ func nameCol(name string) string {
 }
 
 func newProjectsCmd() *cobra.Command {
-	var open, local, remote, set bool
+	var open, local, remote, set, history bool
 	var mode string
 
 	cmd := &cobra.Command{
@@ -40,7 +40,7 @@ func newProjectsCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			flags := cmd.Flags()
 			var include []string
-			for _, f := range []string{"open", "local", "remote", "set"} {
+			for _, f := range []string{"open", "local", "remote", "set", "history"} {
 				if v, _ := flags.GetBool(f); v {
 					include = append(include, "--"+f)
 				}
@@ -58,10 +58,11 @@ func newProjectsCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&open, "open", false, "Include open project")
+	cmd.Flags().BoolVar(&open, "open", false, "Include open tabs")
 	cmd.Flags().BoolVar(&local, "local", false, "Include local projects")
 	cmd.Flags().BoolVar(&remote, "remote", false, "Include remote projects")
 	cmd.Flags().BoolVar(&set, "set", false, "Include configured sets")
+	cmd.Flags().BoolVar(&history, "history", false, "Include recently visited projects from history")
 	cmd.Flags().StringVar(&mode, "mode", "", "Prefix each item with this mode (open|close) for use with fzf --with-nth")
 
 	return cmd
@@ -145,8 +146,27 @@ func runProjects(refresh bool, mode string, flags ...string) ([]string, error) {
 			for _, b := range getSets() {
 				items = append(items, prefix+aliasCol("")+"\t"+nameCol(b.Name)+"\t"+dim(strings.Join(b.Projects, ", ")))
 			}
+		case "--history":
+			histItems, err := readHistory()
+			if err != nil {
+				return nil, err
+			}
+			for _, item := range histItems {
+				items = append(items, prefix+item)
+			}
 		}
 	}
 
 	return items, nil
+}
+
+type setConfig struct {
+	Name     string   `mapstructure:"name"`
+	Projects []string `mapstructure:"projects"`
+}
+
+func getSets() []setConfig {
+	var sets []setConfig
+	viper.UnmarshalKey("sets", &sets)
+	return sets
 }
