@@ -15,6 +15,24 @@ func parseTimestamp(s string) (time.Time, error) {
 	return time.ParseInLocation("2006-01-02T15:04:05.999999999", s, time.Local)
 }
 
+// parseHistoryLine parses a history file line into (name, tsStr).
+// Supports both new tab-delimited format ("name\ttimestamp") and
+// legacy space-separated format ("name timestamp").
+func parseHistoryLine(line string) (name, tsStr string) {
+	if tab := strings.IndexByte(line, '\t'); tab != -1 {
+		return line[:tab], line[tab+1:]
+	}
+	fields := strings.Fields(line)
+	switch len(fields) {
+	case 0:
+		return "", ""
+	case 1:
+		return fields[0], ""
+	default:
+		return strings.Join(fields[:len(fields)-1], " "), fields[len(fields)-1]
+	}
+}
+
 // readLastViews returns a map of project name → last visited time from history.
 func readLastViews() map[string]time.Time {
 	views := map[string]time.Time{}
@@ -23,19 +41,7 @@ func readLastViews() map[string]time.Time {
 		return views
 	}
 	for line := range strings.SplitSeq(strings.TrimSpace(string(data)), "\n") {
-		var name, tsStr string
-		if tab := strings.IndexByte(line, '\t'); tab != -1 {
-			name = line[:tab]
-			tsStr = line[tab+1:]
-		} else {
-			fields := strings.Fields(line)
-			if len(fields) >= 2 {
-				name = strings.Join(fields[:len(fields)-1], " ")
-				tsStr = fields[len(fields)-1]
-			} else if len(fields) == 1 {
-				name = fields[0]
-			}
-		}
+		name, tsStr := parseHistoryLine(line)
 		if name != "" && tsStr != "" {
 			if t, err := parseTimestamp(tsStr); err == nil {
 				views[name] = t
@@ -63,22 +69,9 @@ func readHistory() ([]string, error) {
 			continue
 		}
 		var name, tsStr string
-		if tab := strings.IndexByte(line, '\t'); tab != -1 {
-			// New format: name\ttimestamp
-			name = line[:tab]
-			tsStr = line[tab+1:]
-		} else {
-			// Legacy format: name timestamp (single space, timestamp is last field)
-			fields := strings.Fields(line)
-			if len(fields) == 0 {
-				continue
-			}
-			if len(fields) >= 2 {
-				name = strings.Join(fields[:len(fields)-1], " ")
-				tsStr = fields[len(fields)-1]
-			} else {
-				name = fields[0]
-			}
+		name, tsStr = parseHistoryLine(line)
+		if name == "" {
+			continue
 		}
 		if seen[name] {
 			continue

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -17,13 +18,13 @@ func dim(s string) string {
 
 // aliasCol returns the alias padded to alias_spacing chars and dimmed.
 func aliasCol(alias string) string {
-	w := viper.GetInt("alias_spacing")
+	w := viper.GetInt("spacing.alias")
 	return dim(fmt.Sprintf("%-*s", w, alias))
 }
 
 // nameCol pads a project name to name_spacing chars for annotation alignment.
 func nameCol(name string) string {
-	w := viper.GetInt("name_spacing")
+	w := viper.GetInt("spacing.name")
 	if len(name) >= w {
 		return name + "  "
 	}
@@ -46,7 +47,7 @@ func newProjectsCmd() *cobra.Command {
 				}
 			}
 			if len(include) == 0 {
-				include = []string{"--open", "--local"}
+				include = defaultSourceFlags()
 			}
 			items, err := runProjects(false, mode, include...)
 			if err != nil {
@@ -88,6 +89,11 @@ func runProjects(refresh bool, mode string, flags ...string) ([]string, error) {
 			if mode == "close" {
 				lastViews = readLastViews()
 				now = time.Now()
+				sort.Slice(tabs, func(i, j int) bool {
+					ti := lastViews[nameFor(tabs[i].Title)]
+					tj := lastViews[nameFor(tabs[j].Title)]
+					return ti.Before(tj)
+				})
 			}
 			for _, t := range tabs {
 				if t.Title != "" {

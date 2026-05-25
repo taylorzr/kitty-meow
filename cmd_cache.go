@@ -59,10 +59,6 @@ func newCacheCmd() *cobra.Command {
 			owner := args[0]
 
 			if modeRemove {
-				if len(args) == 0 {
-					return fmt.Errorf("--remove requires an owner argument")
-				}
-
 				if err := os.Remove(cacheFile(owner)); err != nil {
 					return fmt.Errorf("could not remove cache: %w", err)
 				}

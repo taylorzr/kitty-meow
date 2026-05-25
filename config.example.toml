@@ -1,25 +1,48 @@
-# NOTE: dirs ending in / list all projects within
-dirs  = [
+# Terminal emulator: auto-detected from $TERM_PROGRAM if not set
+# terminal = "kitty"  # or "WezTerm"
+
+# Directories to search for projects.
+# Paths ending in / list all subdirectories as individual projects.
+dirs = [
   "~/code/",
-  "~/.config/kitty/meow",
 ]
 
-# Sources shown by default when switch launches (valid: open, local, remote, set, history)
-# default_sources = ["open", "local", "set"]
+# GitHub users/orgs to fetch remote repos from (requires GITHUB_TOKEN env var)
+# github = ["taylorzr"]
 
-# Column widths for the project picker display
-# alias_spacing = 5   # chars reserved for the alias/shortname column
-# name_spacing  = 40  # chars reserved for the project name (annotation aligns after this)
-
+# Commands run in each new pane when opening a project tab.
+# Use "$SHELL" as a placeholder for the default shell.
 template = ["nvim", "$SHELL"]
 
-# NOTE: on macos, typically have to define full path to fzf
-fzf = "/opt/homebrew/bin/fzf"
+# Path to fzf binary (useful on macOS if fzf isn't on PATH)
+# fzf = "/opt/homebrew/bin/fzf"
 
-github = ["taylorzr", "AquaTeenHungerForce"]
+# Sources shown by default when switch launches (valid: open, local, remote, set, history)
+# default_sources = ["open", "local"]
 
-[keybindings]
-default = "ctrl-a"
-remote = "ctrl-r"
-history = "ctrl-i"
-open = "ctrl-t"
+# Maximum number of history entries to keep
+# history_size = 10000
+
+# Column widths for the project picker display
+# [spacing]
+# alias = 5   # chars reserved for the alias column
+# name  = 32  # chars reserved for the project name (annotation aligns after this)
+
+# Short aliases for projects (alias key is used as the tab title)
+# [aliases]
+# kw = "kitty-meow"
+
+# Named project sets that open multiple projects at once
+# [[sets]]
+# name = "work"
+# projects = ["api", "frontend", "infra"]
+
+# fzf keybindings (do not use ctrl-p or ctrl-n — reserved by fzf)
+# [keybindings]
+# default = "ctrl-a"   # reload default sources
+# open    = "ctrl-o"   # show open tabs
+# local   = "ctrl-p"   # show local projects
+# remote  = "ctrl-g"   # show GitHub repos
+# set     = "ctrl-s"   # show project sets
+# history = "ctrl-r"   # show recent history
+# close   = "ctrl-x"   # close an open tab

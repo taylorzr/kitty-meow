@@ -275,15 +275,10 @@ func handleSelection(selection string, cloneDir string) error {
 }
 
 func recordHistory(name string) error {
-	home, err := os.UserHomeDir()
-	if err != nil {
+	if err := os.MkdirAll(meowDir, 0755); err != nil {
 		return err
 	}
-	dir := filepath.Join(home, ".config", "kitty", "meow")
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
-	}
-	path := filepath.Join(dir, "history")
+	path := filepath.Join(meowDir, "history")
 
 	var lines []string
 	if data, err := os.ReadFile(path); err == nil {
