@@ -32,10 +32,23 @@ func newCloseCmd() *cobra.Command {
 			histPath := filepath.Join(home, ".config", "kitty", "meow", "history")
 			if data, err := os.ReadFile(histPath); err == nil {
 				for line := range strings.SplitSeq(strings.TrimSpace(string(data)), "\n") {
-					fields := strings.Fields(line)
-					if len(fields) >= 2 {
-						if t, err := parseTimestamp(fields[1]); err == nil {
-							lastViews[fields[0]] = t
+					var name, tsStr string
+					if tab := strings.IndexByte(line, '\t'); tab != -1 {
+						name = line[:tab]
+						tsStr = line[tab+1:]
+					} else {
+						// Legacy format: "name timestamp"
+						fields := strings.Fields(line)
+						if len(fields) >= 2 {
+							name = strings.Join(fields[:len(fields)-1], " ")
+							tsStr = fields[len(fields)-1]
+						} else if len(fields) == 1 {
+							name = fields[0]
+						}
+					}
+					if name != "" && tsStr != "" {
+						if t, err := parseTimestamp(tsStr); err == nil {
+							lastViews[name] = t
 						}
 					}
 				}
@@ -66,9 +79,9 @@ func newCloseCmd() *cobra.Command {
 				name := nameFor(t.Title)
 				var entry string
 				if name != t.Title {
-					entry = fmt.Sprintf("%s  %s", aliasCol(t.Title), name)
+					entry = aliasCol(t.Title) + "\t" + name
 				} else {
-					entry = fmt.Sprintf("%s  %s", aliasCol(""), t.Title)
+					entry = aliasCol("") + "\t" + t.Title
 				}
 				allTabs = append(allTabs, entry)
 				last, seen := lastViews[name]
@@ -90,6 +103,8 @@ func newCloseCmd() *cobra.Command {
 				"--reverse",
 				"--multi",
 				"--ansi",
+				"--delimiter=\t",
+				"--with-nth=2..",
 			)
 			fzf.Stdin = strings.NewReader(strings.Join(oldTabs, "\n"))
 			var out strings.Builder
@@ -118,10 +133,11 @@ func newCloseCmd() *cobra.Command {
 				if title == "" {
 					continue
 				}
-				// Entry is "alias  dim(name)" or "       name" — first field is the tab title
-				title = strings.Fields(title)[0]
-				if err := term.CloseTab(title); err != nil {
-					fmt.Fprintf(os.Stderr, "failed to close tab %q: %v\n", title, err)
+				// Entry is "aliasCol\ttabTitle" — take the tab-delimited title field
+				parts := strings.SplitN(ansiRe.ReplaceAllString(title, ""), "\t", 2)
+				tabTitle := strings.TrimSpace(parts[len(parts)-1])
+				if err := term.CloseTab(tabTitle); err != nil {
+					fmt.Fprintf(os.Stderr, "failed to close tab %q: %v\n", tabTitle, err)
 				}
 			}
 			return nil

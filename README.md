@@ -128,10 +128,8 @@ return config
 
 ## TODO
 
-- fix stuff when project has space in it
-- project definitions that allow us to run editor | shell | server like go run . 
-- kill cmd should take an argument for selecting older than, like --older 3d
-- support other git sources, like gitlab
+- cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?
+- show only project name in title
 - project based templates
-- project sets, e.g. foo opens bar + baz
-- project aliases
+  - run editor | shell | server like go run . 
+- support other git sources, like gitlab

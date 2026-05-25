@@ -113,13 +113,15 @@ func newSwitchCmd() *cobra.Command {
 				}
 				mode, content, _ := strings.Cut(line, "\t")
 				if mode == "close" {
-					title := strings.Fields(ansiRe.ReplaceAllString(content, ""))[0]
+					// content is "aliasCol\ttabTitle" — take the tab-delimited identifier field
+					parts := strings.SplitN(ansiRe.ReplaceAllString(content, ""), "\t", 2)
+					title := strings.TrimSpace(parts[len(parts)-1])
 					if err := term.CloseTab(title); err != nil {
 						fmt.Fprintf(os.Stderr, "failed to close tab %q: %v\n", title, err)
 					}
 				} else {
 					if err := handleSelection(content, cloneDir); err != nil {
-						return err
+						fmt.Fprintf(os.Stderr, "failed to open %q: %v\n", content, err)
 					}
 				}
 			}
@@ -144,79 +146,93 @@ func findLocalPath(name string) string {
 
 var ansiRe = regexp.MustCompile(`\x1b\[[0-9;]*m`)
 
-// Selection formats:
-//   - "reponame git@github.com:owner/repo.git" → remote: clone then open
-//   - "~/code/project" or "/abs/path/project"  → local dir: open as new tab
-//   - "mytab"                                   → open tab: focus it
+// Selection formats (tab-delimited columns, ANSI codes present):
+//   - "aliasCol\t~/code/project"                    → local dir: open as new tab
+//   - "aliasCol\ttabTitle"                           → open tab: focus it
+//   - "aliasCol\trepoName\tgit@github.com:owner/repo" → remote: clone then open
+//   - "aliasCol\tsetName\tdim(projects)"             → set: expand to projects
+//   - "aliasCol\tprojectName\tdim(timestamp)"        → history entry
+//
+// All display items use aliasCol (parts[0]) as the first column; the identifier is parts[1].
+// When called recursively (e.g. from set expansion), selection is a bare project name or path.
 func handleSelection(selection string, cloneDir string) error {
-	// Strip ANSI codes
-	selection = strings.TrimSpace(ansiRe.ReplaceAllString(selection, ""))
-
-	// Remote: "name<padding>sshUrl" — detect URL before double-space truncation,
-	// since %-30s padding creates double spaces that would strip the URL away.
-	fields := strings.Fields(selection)
-	if len(fields) >= 2 {
-		last := fields[len(fields)-1]
-		if strings.HasPrefix(last, "git@") || strings.HasPrefix(last, "https://") {
-			name := fields[0]
-			sshURL := last
-			recordHistory(name)
-			tabs, err := term.ListTabs()
-			if err == nil {
-				for _, t := range tabs {
-					if t.Title == name {
-						return term.FocusTab(name)
-					}
-				}
-			}
-			dest := expandHome(strings.TrimSuffix(cloneDir, "/") + "/" + name)
-			if _, err := os.Stat(dest); os.IsNotExist(err) {
-				fmt.Printf("cloning %s into %s...\n", name, dest)
-				cloneCmd := exec.Command("git", "clone", sshURL, dest)
-				cloneCmd.Stdout = os.Stdout
-				cloneCmd.Stderr = os.Stderr
-				if err := cloneCmd.Run(); err != nil {
-					fmt.Fprintf(os.Stderr, "git clone failed: %v\nPress Enter to continue...", err)
-					tty, _ := os.Open("/dev/tty")
-					if tty != nil {
-						bufio.NewReader(tty).ReadBytes('\n')
-						tty.Close()
-					}
-					return nil
-				}
-			}
-			return term.NewTab(name, dest)
-		}
+	// Strip ANSI codes, then split on tabs. Do NOT TrimSpace the whole string first —
+	// the leading alias column is spaces that would otherwise eat the first tab separator.
+	raw := ansiRe.ReplaceAllString(selection, "")
+	parts := strings.Split(raw, "\t")
+	for i := range parts {
+		parts[i] = strings.TrimSpace(parts[i])
 	}
 
-	// Strip trailing annotation for history entries ("name   2024-01-01T12:00:00Z" → "name")
-	if i := strings.Index(selection, "  "); i != -1 {
-		selection = strings.TrimSpace(selection[:i])
+	// Resolve the identifier: parts[1] when there are 2+ columns (alias col + identifier),
+	// otherwise parts[0] (bare recursive call).
+	identifier := parts[0]
+	if len(parts) >= 2 {
+		identifier = parts[1]
 	}
 
-	// Local dir: path starting with ~ or /
-	if strings.HasPrefix(selection, "~/") || strings.HasPrefix(selection, "/") {
-		path := expandHome(selection)
-		name := path[strings.LastIndex(path, "/")+1:]
-		recordHistory(name)
+	// Remote: last field is an SSH or HTTPS URL (format: "aliasCol\trepoName\tgit@...")
+	last := parts[len(parts)-1]
+	if strings.HasPrefix(last, "git@") || strings.HasPrefix(last, "https://") {
+		sshURL := last
+		recordHistory(identifier)
 		tabs, err := term.ListTabs()
 		if err == nil {
 			for _, t := range tabs {
-				if t.Title == name {
-					return term.FocusTab(name)
+				if t.Title == identifier {
+					return term.FocusTab(identifier)
 				}
 			}
 		}
-		return term.NewTab(name, path)
+		dest := expandHome(strings.TrimSuffix(cloneDir, "/") + "/" + identifier)
+		if _, err := os.Stat(dest); os.IsNotExist(err) {
+			fmt.Printf("cloning %s into %s...\n", identifier, dest)
+			cloneCmd := exec.Command("git", "clone", sshURL, dest)
+			cloneCmd.Stdout = os.Stdout
+			cloneCmd.Stderr = os.Stderr
+			if err := cloneCmd.Run(); err != nil {
+				fmt.Fprintf(os.Stderr, "git clone failed: %v\nPress Enter to continue...", err)
+				tty, _ := os.Open("/dev/tty")
+				if tty != nil {
+					bufio.NewReader(tty).ReadBytes('\n')
+					tty.Close()
+				}
+				return nil
+			}
+		}
+		return term.NewTab(identifier, dest)
 	}
 
-	// Alias: use alias as tab title, resolve real name for path lookup
+	// Local dir: identifier is a path starting with ~ or /
+	if strings.HasPrefix(identifier, "~/") || strings.HasPrefix(identifier, "/") {
+		path := expandHome(identifier)
+		name := path[strings.LastIndex(path, "/")+1:]
+		recordHistory(name)
+		// Tab may be open under the alias name rather than the real name.
+		alias := aliasFor(name)
+		tabs, err := term.ListTabs()
+		if err == nil {
+			for _, t := range tabs {
+				if t.Title == name || (alias != "" && t.Title == alias) {
+					return term.FocusTab(t.Title)
+				}
+			}
+		}
+		// Open a new tab; prefer alias as the tab title when one is configured.
+		tabTitle := name
+		if alias != "" {
+			tabTitle = alias
+		}
+		return term.NewTab(tabTitle, path)
+	}
+
+	// Alias: identifier matches an alias key → use alias as tab title, resolve real name for path
 	if aliases := viper.GetStringMapString("aliases"); len(aliases) > 0 {
-		if realName, ok := aliases[selection]; ok {
+		if realName, ok := aliases[identifier]; ok {
 			tabs, err := term.ListTabs()
 			if err == nil {
 				for _, t := range tabs {
-					if t.Title == selection || t.Title == realName {
+					if t.Title == identifier || t.Title == realName {
 						recordHistory(realName)
 						return term.FocusTab(t.Title)
 					}
@@ -224,14 +240,14 @@ func handleSelection(selection string, cloneDir string) error {
 			}
 			if path := findLocalPath(realName); path != "" {
 				recordHistory(realName)
-				return term.NewTab(selection, expandHome(path))
+				return term.NewTab(identifier, expandHome(path))
 			}
 		}
 	}
 
 	// Set: expand to individual projects
 	for _, b := range getSets() {
-		if b.Name == selection {
+		if b.Name == identifier {
 			for _, project := range b.Projects {
 				if err := handleSelection(project, cloneDir); err != nil {
 					fmt.Fprintf(os.Stderr, "set: failed to open %q: %v\n", project, err)
@@ -242,11 +258,11 @@ func handleSelection(selection string, cloneDir string) error {
 	}
 
 	// Open tab: focus if open, otherwise find local dir and open it
-	if path := findLocalPath(selection); path != "" {
+	if path := findLocalPath(identifier); path != "" {
 		return handleSelection(expandHome(path), cloneDir)
 	}
-	recordHistory(selection)
-	return term.FocusTab(selection)
+	recordHistory(identifier)
+	return term.FocusTab(identifier)
 }
 
 func recordHistory(name string) error {
@@ -265,7 +281,7 @@ func recordHistory(name string) error {
 		lines = strings.Split(strings.TrimRight(string(data), "\n"), "\n")
 	}
 
-	lines = append(lines, fmt.Sprintf("%s %s", name, time.Now().Format(time.RFC3339)))
+	lines = append(lines, name+"\t"+time.Now().Format(time.RFC3339))
 
 	if len(lines) > viper.GetInt("history_size") {
 		lines = lines[len(lines)-viper.GetInt("history_size"):]

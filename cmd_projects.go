@@ -75,9 +75,9 @@ func runProjects(refresh bool, mode string, flags ...string) ([]string, error) {
 				if t.Title != "" {
 					name := nameFor(t.Title)
 					if name != t.Title {
-						items = append(items, prefix+fmt.Sprintf("%s  %s", aliasCol(t.Title), name))
+						items = append(items, prefix+aliasCol(t.Title)+"\t"+name)
 					} else {
-						items = append(items, prefix+fmt.Sprintf("%s  %s", aliasCol(""), t.Title))
+						items = append(items, prefix+aliasCol("")+"\t"+t.Title)
 					}
 				}
 			}
@@ -94,14 +94,14 @@ func runProjects(refresh bool, mode string, flags ...string) ([]string, error) {
 							name := e.Name()
 							path := collapseHome(filepath.Join(dir, name))
 							alias := aliasFor(name)
-							items = append(items, prefix+fmt.Sprintf("%s  %s", aliasCol(alias), path))
+							items = append(items, prefix+aliasCol(alias)+"\t"+path)
 						}
 					}
 				} else {
 					name := filepath.Base(expandHome(dir))
 					path := collapseHome(expandHome(dir))
 					alias := aliasFor(name)
-					items = append(items, prefix+fmt.Sprintf("%s  %s", aliasCol(alias), path))
+					items = append(items, prefix+aliasCol(alias)+"\t"+path)
 				}
 			}
 		case "--remote":
@@ -111,12 +111,12 @@ func runProjects(refresh bool, mode string, flags ...string) ([]string, error) {
 					return nil, err
 				}
 				for _, repo := range repos {
-					items = append(items, prefix+fmt.Sprintf("%-30s %s", repo.Name, dim(repo.SSHUrl)))
+					items = append(items, prefix+aliasCol("")+"\t"+repo.Name+"\t"+dim(repo.SSHUrl))
 				}
 			}
 		case "--set":
 			for _, b := range getSets() {
-				items = append(items, prefix+fmt.Sprintf("%-30s %s", b.Name, dim(strings.Join(b.Projects, ", "))))
+				items = append(items, prefix+aliasCol("")+"\t"+b.Name+"\t"+dim(strings.Join(b.Projects, ", ")))
 			}
 		}
 	}

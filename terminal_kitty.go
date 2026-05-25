@@ -45,12 +45,32 @@ func (k *KittyTerminal) ListTabs() ([]Tab, error) {
 	return tabs, nil
 }
 
+// tabIDByTitle returns the ID of the tab with the given title, or -1 if not found.
+func (k *KittyTerminal) tabIDByTitle(title string) int {
+	tabs, err := k.ListTabs()
+	if err != nil {
+		return -1
+	}
+	for _, t := range tabs {
+		if t.Title == title {
+			return t.ID
+		}
+	}
+	return -1
+}
+
 func (k *KittyTerminal) CloseTab(title string) error {
-	return exec.Command("kitty", "@", "close-tab", "--match", "title:^"+title+"$").Run()
+	if id := k.tabIDByTitle(title); id >= 0 {
+		return exec.Command("kitty", "@", "close-tab", "--match", fmt.Sprintf("id:%d", id)).Run()
+	}
+	return fmt.Errorf("tab %q not found", title)
 }
 
 func (k *KittyTerminal) FocusTab(title string) error {
-	return exec.Command("kitty", "@", "focus-tab", "--match", "title:^"+title+"$").Run()
+	if id := k.tabIDByTitle(title); id >= 0 {
+		return exec.Command("kitty", "@", "focus-tab", "--match", fmt.Sprintf("id:%d", id)).Run()
+	}
+	return fmt.Errorf("tab %q not found", title)
 }
 
 func (k *KittyTerminal) sendText(windowID, command string) error {

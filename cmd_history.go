@@ -56,25 +56,42 @@ func readHistory() ([]string, error) {
 	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
 	var items []string
 	for i := len(lines) - 1; i >= 0; i-- {
-		fields := strings.Fields(lines[i])
-		if len(fields) == 0 {
+		line := lines[i]
+		if line == "" {
 			continue
 		}
-		name := fields[0]
+		var name, tsStr string
+		if tab := strings.IndexByte(line, '\t'); tab != -1 {
+			// New format: name\ttimestamp
+			name = line[:tab]
+			tsStr = line[tab+1:]
+		} else {
+			// Legacy format: name timestamp (single space, timestamp is last field)
+			fields := strings.Fields(line)
+			if len(fields) == 0 {
+				continue
+			}
+			if len(fields) >= 2 {
+				name = strings.Join(fields[:len(fields)-1], " ")
+				tsStr = fields[len(fields)-1]
+			} else {
+				name = fields[0]
+			}
+		}
 		if seen[name] {
 			continue
 		}
 		seen[name] = true
 		alias := aliasFor(name)
 		var entry string
-		if len(fields) >= 2 {
-			if t, err := parseTimestamp(fields[1]); err == nil {
+		if tsStr != "" {
+			if t, err := parseTimestamp(tsStr); err == nil {
 				rel := dim(relativeTime(now.Sub(t)))
-				entry = fmt.Sprintf("%s  %-25s %s", aliasCol(alias), name, rel)
+				entry = aliasCol(alias) + "\t" + name + "\t" + rel
 			}
 		}
 		if entry == "" {
-			entry = fmt.Sprintf("%s  %s", aliasCol(alias), name)
+			entry = aliasCol(alias) + "\t" + name
 		}
 		items = append(items, entry)
 	}
