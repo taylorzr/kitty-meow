@@ -43,6 +43,36 @@ func parseTimestamp(s string) (time.Time, error) {
 	return time.ParseInLocation("2006-01-02T15:04:05.999999999", s, time.Local)
 }
 
+// readLastViews returns a map of project name → last visited time from history.
+func readLastViews() map[string]time.Time {
+	views := map[string]time.Time{}
+	data, err := os.ReadFile(filepath.Join(meowDir, "history"))
+	if err != nil {
+		return views
+	}
+	for line := range strings.SplitSeq(strings.TrimSpace(string(data)), "\n") {
+		var name, tsStr string
+		if tab := strings.IndexByte(line, '\t'); tab != -1 {
+			name = line[:tab]
+			tsStr = line[tab+1:]
+		} else {
+			fields := strings.Fields(line)
+			if len(fields) >= 2 {
+				name = strings.Join(fields[:len(fields)-1], " ")
+				tsStr = fields[len(fields)-1]
+			} else if len(fields) == 1 {
+				name = fields[0]
+			}
+		}
+		if name != "" && tsStr != "" {
+			if t, err := parseTimestamp(tsStr); err == nil {
+				views[name] = t
+			}
+		}
+	}
+	return views
+}
+
 func readHistory() ([]string, error) {
 	data, err := os.ReadFile(filepath.Join(meowDir, "history"))
 	if err != nil {

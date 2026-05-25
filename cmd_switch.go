@@ -113,9 +113,18 @@ func newSwitchCmd() *cobra.Command {
 				}
 				mode, content, _ := strings.Cut(line, "\t")
 				if mode == "close" {
-					// content is "aliasCol\ttabTitle" — take the tab-delimited identifier field
-					parts := strings.SplitN(ansiRe.ReplaceAllString(content, ""), "\t", 2)
-					title := strings.TrimSpace(parts[len(parts)-1])
+					// content is "aliasCol\tname[\trelTime]" — parts[1] is the display name
+					parts := strings.Split(ansiRe.ReplaceAllString(content, ""), "\t")
+					var title string
+					if len(parts) >= 2 {
+						title = strings.TrimSpace(parts[1])
+					} else {
+						title = strings.TrimSpace(parts[0])
+					}
+					// If this name has an alias, the tab is titled with the alias key
+					if alias := aliasFor(title); alias != "" {
+						title = alias
+					}
 					if err := term.CloseTab(title); err != nil {
 						fmt.Fprintf(os.Stderr, "failed to close tab %q: %v\n", title, err)
 					}

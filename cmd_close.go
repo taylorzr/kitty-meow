@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -27,33 +26,7 @@ func newCloseCmd() *cobra.Command {
 				return err
 			}
 
-			lastViews := map[string]time.Time{}
-			home, _ := os.UserHomeDir()
-			histPath := filepath.Join(home, ".config", "kitty", "meow", "history")
-			if data, err := os.ReadFile(histPath); err == nil {
-				for line := range strings.SplitSeq(strings.TrimSpace(string(data)), "\n") {
-					var name, tsStr string
-					if tab := strings.IndexByte(line, '\t'); tab != -1 {
-						name = line[:tab]
-						tsStr = line[tab+1:]
-					} else {
-						// Legacy format: "name timestamp"
-						fields := strings.Fields(line)
-						if len(fields) >= 2 {
-							name = strings.Join(fields[:len(fields)-1], " ")
-							tsStr = fields[len(fields)-1]
-						} else if len(fields) == 1 {
-							name = fields[0]
-						}
-					}
-					if name != "" && tsStr != "" {
-						if t, err := parseTimestamp(tsStr); err == nil {
-							lastViews[name] = t
-						}
-					}
-				}
-			}
-
+			lastViewMap := readLastViews()
 			now := time.Now()
 			today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 			cutoff := today.AddDate(0, 0, -days)
@@ -62,29 +35,45 @@ func newCloseCmd() *cobra.Command {
 				fmt.Fprintf(os.Stderr, "cutoff: %s\n", cutoff.Format(time.RFC3339))
 				fmt.Fprintf(os.Stderr, "open tabs (%d):\n", len(tabs))
 				for _, t := range tabs {
-					last, seen := lastViews[nameFor(t.Title)]
+					last, seen := lastViewMap[nameFor(t.Title)]
 					if seen {
 						fmt.Fprintf(os.Stderr, "  %q last=%s old=%v\n", t.Title, last.Format(time.RFC3339), last.Before(cutoff))
 					} else {
 						fmt.Fprintf(os.Stderr, "  %q (not in history → old)\n", t.Title)
 					}
 				}
+				fmt.Fprintf(os.Stderr, "lastViewMap (%d entries):\n", len(lastViewMap))
+				for k, v := range lastViewMap {
+					fmt.Fprintf(os.Stderr, "  %q → %s\n", k, v.Format(time.RFC3339))
+				}
 			}
 
+			// Entry format: "tabTitle\taliasCol\tnameCol(displayName)\tdim(relTime)"
+			// Field 1 (tabTitle) is hidden via --with-nth=2..; used for closing.
 			var allTabs, oldTabs []string
-		for _, t := range tabs {
+			for _, t := range tabs {
 				if t.Title == "" {
 					continue
 				}
-				name := nameFor(t.Title)
-				var entry string
-				if name != t.Title {
-					entry = aliasCol(t.Title) + "\t" + name
+				displayName := nameFor(t.Title)
+				var alias string
+				if displayName != t.Title {
+					alias = t.Title // tab title is the alias
 				} else {
-					entry = aliasCol("") + "\t" + t.Title
+					alias = aliasFor(t.Title)
 				}
+				realName := displayName
+
+				var entry string
+				if last, seen := lastViewMap[realName]; seen {
+					rel := dim(relativeTime(now.Sub(last)))
+					entry = t.Title + "\t" + aliasCol(alias) + "\t" + nameCol(displayName) + "\t" + rel
+				} else {
+					entry = t.Title + "\t" + aliasCol(alias) + "\t" + displayName
+				}
+
 				allTabs = append(allTabs, entry)
-				last, seen := lastViews[name]
+				last, seen := lastViewMap[realName]
 				if !seen || last.Before(cutoff) {
 					oldTabs = append(oldTabs, entry)
 				}
@@ -96,16 +85,16 @@ func newCloseCmd() *cobra.Command {
 			})
 
 			// TODO: abstract out the fzf invocation since it's basically the same in all commands
-			fzf := exec.Command(viper.GetString("fzf"),
-				"--prompt=🐈💀 close > ",
-				"--header="+header,
-				"--bind="+binds,
-				"--reverse",
-				"--multi",
-				"--ansi",
-				"--delimiter=\t",
-				"--with-nth=2..",
-			)
+		fzf := exec.Command(viper.GetString("fzf"),
+			"--prompt=🐈💀 close > ",
+			"--header="+header,
+			"--bind="+binds,
+			"--reverse",
+			"--multi",
+			"--ansi",
+			"--delimiter=\t",
+			"--with-nth=2..",
+		)
 			fzf.Stdin = strings.NewReader(strings.Join(oldTabs, "\n"))
 			var out strings.Builder
 			fzf.Stdout = &out
@@ -133,9 +122,9 @@ func newCloseCmd() *cobra.Command {
 				if title == "" {
 					continue
 				}
-				// Entry is "aliasCol\ttabTitle" — take the tab-delimited title field
+				// Entry is "tabTitle\taliasCol\t..." — field 0 is the actual tab title.
 				parts := strings.SplitN(ansiRe.ReplaceAllString(title, ""), "\t", 2)
-				tabTitle := strings.TrimSpace(parts[len(parts)-1])
+				tabTitle := strings.TrimSpace(parts[0])
 				if err := term.CloseTab(tabTitle); err != nil {
 					fmt.Fprintf(os.Stderr, "failed to close tab %q: %v\n", tabTitle, err)
 				}

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -81,14 +82,30 @@ func runProjects(refresh bool, mode string, flags ...string) ([]string, error) {
 			if err != nil {
 				return nil, err
 			}
+			var lastViews map[string]time.Time
+			var now time.Time
+			if mode == "close" {
+				lastViews = readLastViews()
+				now = time.Now()
+			}
 			for _, t := range tabs {
 				if t.Title != "" {
 					name := nameFor(t.Title)
+					var alias string
 					if name != t.Title {
-						items = append(items, prefix+aliasCol(t.Title)+"\t"+name)
-					} else {
-						items = append(items, prefix+aliasCol("")+"\t"+t.Title)
+						alias = t.Title
 					}
+					var entry string
+					if lastViews != nil {
+						if last, ok := lastViews[name]; ok {
+							rel := dim(relativeTime(now.Sub(last)))
+							entry = prefix + aliasCol(alias) + "\t" + nameCol(name) + "\t" + rel
+						}
+					}
+					if entry == "" {
+						entry = prefix + aliasCol(alias) + "\t" + name
+					}
+					items = append(items, entry)
 				}
 			}
 		case "--local":
