@@ -128,8 +128,8 @@ return config
 
 ## TODO
 
-- config for default list, like maybe just want to show open projects by default
 - fix stuff when project has space in it
+- project definitions that allow us to run editor | shell | server like go run . 
 - kill cmd should take an argument for selecting older than, like --older 3d
 - support other git sources, like gitlab
 - project based templates

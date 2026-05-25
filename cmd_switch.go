@@ -14,6 +14,15 @@ import (
 	"github.com/spf13/viper"
 )
 
+func defaultSourceFlags() []string {
+	sources := viper.GetStringSlice("default_sources")
+	var flags []string
+	for _, s := range sources {
+		flags = append(flags, "--"+s)
+	}
+	return flags
+}
+
 func newSwitchCmd() *cobra.Command {
 	viper.SetDefault("keybindings.remote", "ctrl-g")
 	viper.SetDefault("keybindings.local", "ctrl-p")
@@ -22,6 +31,7 @@ func newSwitchCmd() *cobra.Command {
 	viper.SetDefault("keybindings.history", "ctrl-r")
 	viper.SetDefault("keybindings.default", "ctrl-a")
 	viper.SetDefault("keybindings.close", "ctrl-x")
+	viper.SetDefault("default_sources", []string{"open", "local"})
 	cmd := &cobra.Command{
 		Use:   "switch",
 		Short: "Switch project via fzf",
@@ -31,18 +41,20 @@ func newSwitchCmd() *cobra.Command {
 				return err
 			}
 
-			initial, err := runProjects(false, "open", "--open", "--local")
+			defaultFlags := defaultSourceFlags()
+			initial, err := runProjects(false, "open", defaultFlags...)
 			if err != nil {
 				return err
 			}
 
+			defaultCmd := fmt.Sprintf("%s projects %s --mode=open 2>&1", exe, strings.Join(defaultFlags, " "))
 			binds, header := bindsAndHeader("🐈", []bind{
 				{viper.GetString("keybindings.remote"), "remote", fmt.Sprintf("%s projects --remote --mode=open 2>&1", exe)},
 				{viper.GetString("keybindings.local"), "local", fmt.Sprintf("%s projects --local --mode=open 2>&1", exe)},
 				{viper.GetString("keybindings.open"), "open", fmt.Sprintf("%s projects --open --mode=open 2>&1", exe)},
 				{viper.GetString("keybindings.history"), "history", fmt.Sprintf("%s history --mode=open 2>&1", exe)},
 				{viper.GetString("keybindings.set"), "set", fmt.Sprintf("%s sets --mode=open 2>&1", exe)},
-				{viper.GetString("keybindings.default"), "default", fmt.Sprintf("%s projects --open --local --mode=open 2>&1", exe)},
+				{viper.GetString("keybindings.default"), "default", defaultCmd},
 				{viper.GetString("keybindings.close"), "close", fmt.Sprintf("%s projects --open --mode=close 2>&1", exe)},
 			})
 

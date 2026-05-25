@@ -4,6 +4,9 @@ dirs  = [
   "~/.config/kitty/meow",
 ]
 
+# Sources shown by default when switch launches (valid: open, local, remote, set, history)
+# default_sources = ["open", "local", "set"]
+
 template = ["nvim", "$SHELL"]
 
 # NOTE: on macos, typically have to define full path to fzf

@@ -16,6 +16,20 @@
         ["~/code/", "~/.config/kitty/meow"]
       ]
     },
+    "default_sources": {
+      "type": "array",
+      "description": "Sources shown by default when 'meow switch' launches, and when the default keybinding is pressed. Valid values: open, local, remote, set, history.",
+      "items": {
+        "type": "string",
+        "enum": ["open", "local", "remote", "set", "history"]
+      },
+      "default": ["open", "local"],
+      "examples": [
+        ["open", "local"],
+        ["local"],
+        ["open", "local", "history"]
+      ]
+    },
     "template": {
       "type": "array",
       "description": "Commands to run when opening a new project tab (e.g. editor and shell).",
