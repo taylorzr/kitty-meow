@@ -78,7 +78,7 @@ func (k *KittyTerminal) sendText(windowID, command string) error {
 }
 
 func (k *KittyTerminal) NewTab(title, cwd string) error {
-	out, err := exec.Command("kitty", "@", "launch", "--type", "tab", "--tab-title", title, "--cwd", cwd).Output()
+	out, err := exec.Command("kitty", "@", "launch", "--type", "tab", "--title", title, "--tab-title", title, "--cwd", cwd).Output()
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (k *KittyTerminal) NewTab(title, cwd string) error {
 	}
 
 	for _, entry := range template[1:] {
-		out, err := exec.Command("kitty", "@", "launch", "--type", "window", "--dont-take-focus", "--cwd", cwd).Output()
+		out, err := exec.Command("kitty", "@", "launch", "--type", "window", "--dont-take-focus", "--cwd", cwd, "--title=current").Output()
 		if err != nil {
 			return err
 		}

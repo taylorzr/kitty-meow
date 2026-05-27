@@ -66,6 +66,10 @@ owner = somecoolguy
 env GITHUB_TOKEN=<github_token>
 map ctrl+space kitty-meow switch
 map ctrl+- goto_tab -1
+
+# optional: keeps tab title set to project name
+map ctrl+enter launch --cwd=current --title=current
+window_title_format {tab.title}
 ```
 
 ## Caching github repositories
@@ -128,10 +132,9 @@ return config
 
 ## TODO
 
-- add back in a close old projects
-  - can ctrl-x default to all projects, but ctrl-shift-x toggleg all/old?
-- cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?
 - show only project name in title
+^
+- cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?
 - project based templates
   - run editor | shell | server like go run .
 - support other git sources, like gitlab
