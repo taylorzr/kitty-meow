@@ -27,20 +27,22 @@ On select
 
 ### Installation
 
+Depends on fzf see [fzf installation](https://github.com/junegunn/fzf/#installation).
+
 ```sh
 go install github.com/taylorzr/kitty-meow@latest
 ```
 
-Requires [fzf](https://github.com/junegunn/fzf/).
+Ensure your go bin is in your path, e.g. `path+=("$HOME/go/bin")`.
+
 
 ### Configuration
 
-You'll need to:
 
-- configure ~/.config/kitty/meow/config.toml
-- update ~/.config/kitty/kitty.conf
-  - set your github token as env
-  - create keyboard shortcut for switching
+1. configure `~/.config/kitty/meow/config.toml`
+2. update `~/.config/kitty/kitty.conf`
+    - create keyboard shortcut for switching
+    - set your github token as env
 
 ### config.toml
 
@@ -50,13 +52,14 @@ Set at least dirs and github. More options can be seen in config.example.toml.
 # ~/.config/kitty/meow/config.toml
 
 dirs  = [
-  "~/code/",
-  "~/.config/kitty/meow",
+  "~/code/", # dirs ending in / list all projects within
+  "~/.config/kitty/meow",  # otherwise the dir is treated as a single project
 ]
 
-[[github]]
-owner = somecoolguy
+github = ["taylorzr", "AquaTeenHungerForce"]
 ```
+
+If no dirs are set, projects will be listed and cloned to your home dir.
 
 ### kitty.conf
 
@@ -67,9 +70,10 @@ env GITHUB_TOKEN=<github_token>
 map ctrl+space kitty-meow switch
 map ctrl+- goto_tab -1
 
-# optional: keeps tab title set to project name
-map ctrl+enter launch --cwd=current --title=current
+# optional: this keeps tab title set to project name
 window_title_format {tab.title}
+# ensure you new pane binding includes `--title=current`
+map ctrl+enter launch --cwd=current --title=current
 ```
 
 ## Caching github repositories
@@ -86,9 +90,9 @@ Caches aren't automatically updated, so re-run `kitty-meow cache` as needed.
 
 ## Github Auth
 
-You need to create a github token with , and set it as env GITHUB_TOKEN. You need to put env in your kitty
-config, not .zshrc. More about that
-[here](https://sw.kovidgoyal.net/kitty/faq/#things-behave-differently-when-running-kitty-from-system-launcher-vs-from-another-terminal)
+You need to create a github token and set it as env GITHUB_TOKEN. You need to put env in your
+kitty config, not .zshrc. More about that
+[here](https://sw.kovidgoyal.net/kitty/faq/#things-behave-differently-when-running-kitty-from-system-launcher-vs-from-another-terminal).
 
 Because I commit kitty.conf to my dotfiles, I put any secrets in an extra conf file:
 
@@ -103,6 +107,22 @@ include ./dont_commit_me.conf
 
 env GITHUB_TOKEN=<github_token>
 ```
+
+## Migrating from v0
+
+Instead of flags on your switch command, kitty-meow is now configured with `~/.config/kitty/meow/config.toml`:
+-  `--user` & `--org` flags > toml e.g. `github = ["taylorzr", "AquaTeenHungerForce"]`
+-  `--dirs` flags > toml e.g. `dirs = ["~/code/"]`
+
+Project closing is now built into the main keybinding, so remove any keybinding like `map ctrl+shift+x kitten meow/kill.py`.
+
+Caching is built into the main binary. You can create a keybinding, or just call the binary. See `kitty-meow cache --help`.
+
+Fzf binary path is now a config, instead of env BIN_PATH, configure toml e.g. `fzf = "/opt/homebrew/bin/fzf"`.
+
+Switch keybindings have changed but can all be configured, see ./config.example.toml.
+
+A few new features have been added, like project aliases, and project sets. See docs above.
 
 ## Experimental Wezterm Support
 
@@ -132,9 +152,8 @@ return config
 
 ## TODO
 
-- show only project name in title
-^
-- cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?
+- fix project ordering when swapping explicitly to default
 - project based templates
   - run editor | shell | server like go run .
 - support other git sources, like gitlab
+- cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?

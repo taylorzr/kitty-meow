@@ -71,6 +71,12 @@
       "minimum": 1,
       "examples": [10000, 500]
     },
+    "hide_dot_dirs": {
+      "type": "boolean",
+      "description": "When listing local projects, hide directories whose names start with '.'. Set to false to show them.",
+      "default": true,
+      "examples": [true, false]
+    },
     "spacing": {
       "type": "object",
       "description": "Column widths for the project picker display.",

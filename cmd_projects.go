@@ -12,25 +12,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-func dim(s string) string {
-	return fmt.Sprintf("\033[2m%s\033[0m", s)
-}
-
-// aliasCol returns the alias padded to alias_spacing chars and dimmed.
-func aliasCol(alias string) string {
-	w := viper.GetInt("spacing.alias")
-	return dim(fmt.Sprintf("%-*s", w, alias))
-}
-
-// nameCol pads a project name to name_spacing chars for annotation alignment.
-func nameCol(name string) string {
-	w := viper.GetInt("spacing.name")
-	if len(name) >= w {
-		return name + "  "
-	}
-	return fmt.Sprintf("%-*s", w, name)
-}
-
 func newProjectsCmd() *cobra.Command {
 	var open, local, remote, set, history bool
 	var mode string
@@ -123,9 +104,13 @@ func runProjects(refresh bool, mode string, flags ...string) ([]string, error) {
 					if err != nil {
 						return nil, fmt.Errorf("could not read %s: %w", dir, err)
 					}
+					hideDot := viper.GetBool("hide_dot_dirs")
 					for _, e := range entries {
 						if e.IsDir() {
 							name := e.Name()
+							if hideDot && strings.HasPrefix(name, ".") {
+								continue
+							}
 							path := collapseHome(filepath.Join(dir, name))
 							alias := aliasFor(name)
 							items = append(items, prefix+aliasCol(alias)+"\t"+path)
@@ -175,4 +160,21 @@ func getSets() []setConfig {
 	var sets []setConfig
 	viper.UnmarshalKey("sets", &sets)
 	return sets
+}
+
+func aliasCol(alias string) string {
+	w := viper.GetInt("spacing.alias")
+	return dim(fmt.Sprintf("%-*s", w, alias))
+}
+
+func nameCol(name string) string {
+	w := viper.GetInt("spacing.name")
+	if len(name) >= w {
+		return name + "  "
+	}
+	return fmt.Sprintf("%-*s", w, name)
+}
+
+func dim(s string) string {
+	return fmt.Sprintf("\033[2m%s\033[0m", s)
 }

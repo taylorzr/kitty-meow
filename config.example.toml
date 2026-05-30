@@ -23,6 +23,9 @@ template = ["nvim", "$SHELL"]
 # Maximum number of history entries to keep
 # history_size = 10000
 
+# Hide directories starting with "." when listing local projects (default: true)
+# hide_dot_dirs = true
+
 # Column widths for the project picker display
 # [spacing]
 # alias = 5   # chars reserved for the alias column
@@ -37,7 +40,7 @@ template = ["nvim", "$SHELL"]
 # name = "work"
 # projects = ["api", "frontend", "infra"]
 
-# fzf keybindings (do not use ctrl-p or ctrl-n — reserved by fzf)
+# fzf keybindings
 # [keybindings]
 # default = "ctrl-a"   # reload default sources
 # open    = "ctrl-o"   # show open tabs

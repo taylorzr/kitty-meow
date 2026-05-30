@@ -78,6 +78,7 @@ func main() {
 	viper.SetDefault("history_size", 10000)
 	viper.SetDefault("spacing.alias", 5)
 	viper.SetDefault("spacing.name", 32)
+	viper.SetDefault("hide_dot_dirs", true)
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			fmt.Fprintf(os.Stderr, "warning: config error: %v\n", err)

@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -62,7 +61,6 @@ func newSwitchCmd() *cobra.Command {
 				"--prompt=🐈 switch > ",
 				"--header="+header,
 				"--bind="+binds,
-				// "--bind=tab:toggle",
 				"--reverse",
 				"--ansi",
 				"--multi",
@@ -272,24 +270,4 @@ func handleSelection(selection string, cloneDir string) error {
 	}
 	recordHistory(identifier)
 	return term.FocusTab(identifier)
-}
-
-func recordHistory(name string) error {
-	if err := os.MkdirAll(meowDir, 0755); err != nil {
-		return err
-	}
-	path := filepath.Join(meowDir, "history")
-
-	var lines []string
-	if data, err := os.ReadFile(path); err == nil {
-		lines = strings.Split(strings.TrimRight(string(data), "\n"), "\n")
-	}
-
-	lines = append(lines, name+"\t"+time.Now().Format(time.RFC3339))
-
-	if len(lines) > viper.GetInt("history_size") {
-		lines = lines[len(lines)-viper.GetInt("history_size"):]
-	}
-
-	return os.WriteFile(path, []byte(strings.Join(lines, "\n")+"\n"), 0644)
 }
