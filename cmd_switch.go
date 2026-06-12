@@ -57,6 +57,10 @@ func newSwitchCmd() *cobra.Command {
 				{viper.GetString("keybindings.close"), "close", fmt.Sprintf("%s projects --open --mode=close 2>&1", exe)},
 			})
 
+			if configError != "" {
+				header = "\033[1;31m⚠ " + configError + "\033[0m\n" + header
+			}
+
 			fzf := exec.Command(viper.GetString("fzf"),
 				"--prompt=🐈 switch > ",
 				"--header="+header,

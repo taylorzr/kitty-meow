@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+var configError string
+
 var meowDir = expandHome("~/.config/kitty/meow")
 
 func cacheFile(owner string) string {
@@ -107,7 +109,7 @@ func main() {
 	viper.SetDefault("hide_dot_dirs", true)
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			fmt.Fprintf(os.Stderr, "warning: config error: %v\n", err)
+			configError = fmt.Sprintf("config error: %v", err)
 		}
 	}
 

@@ -152,7 +152,6 @@ return config
 
 ## TODO
 
-- if bad toml, show error somewhere
 - testing in CI, github actions?
 - fix project ordering when swapping explicitly to default
 - support other git sources, like gitlab

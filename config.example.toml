@@ -35,8 +35,8 @@ template = ["nvim", "$SHELL"]
 # "alias" sets the tab title; "template" overrides the global template for that project.
 # [[projects]]
 # name = "kitty-meow"
-# alias = "kw"
-# template = ["nvim", "just run", "$SHELL"]
+# alias = "km"
+# template = ["nvim", "$SHELL", "echo hi"]
 
 # Named project sets that open multiple projects at once
 # [[sets]]
