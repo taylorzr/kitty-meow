@@ -14,7 +14,7 @@ type Tab struct {
 type Terminal interface {
 	ListTabs() ([]Tab, error)
 	FocusTab(title string) error
-	NewTab(title, cwd string) error
+	NewTab(title, cwd string, template []string) error
 	CloseTab(title string) error
 }
 

@@ -152,8 +152,8 @@ return config
 
 ## TODO
 
+- if bad toml, show error somewhere
+- testing in CI, github actions?
 - fix project ordering when swapping explicitly to default
-- project based templates
-  - run editor | shell | server like go run .
 - support other git sources, like gitlab
 - cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?

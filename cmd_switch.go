@@ -207,7 +207,7 @@ func handleSelection(selection string, cloneDir string) error {
 				return nil
 			}
 		}
-		return term.NewTab(identifier, dest)
+		return term.NewTab(identifier, dest, templateFor(identifier))
 	}
 
 	// Local dir: identifier is a path starting with ~ or /
@@ -230,24 +230,24 @@ func handleSelection(selection string, cloneDir string) error {
 		if alias != "" {
 			tabTitle = alias
 		}
-		return term.NewTab(tabTitle, path)
+		return term.NewTab(tabTitle, path, templateFor(name))
 	}
 
 	// Alias: identifier matches an alias key → use alias as tab title, resolve real name for path
-	if aliases := viper.GetStringMapString("aliases"); len(aliases) > 0 {
-		if realName, ok := aliases[identifier]; ok {
+	for _, p := range getProjects() {
+		if p.Alias == identifier {
 			tabs, err := term.ListTabs()
 			if err == nil {
 				for _, t := range tabs {
-					if t.Title == identifier || t.Title == realName {
-						recordHistory(realName)
+					if t.Title == p.Alias || t.Title == p.Name {
+						recordHistory(p.Name)
 						return term.FocusTab(t.Title)
 					}
 				}
 			}
-			if path := findLocalPath(realName); path != "" {
-				recordHistory(realName)
-				return term.NewTab(identifier, expandHome(path))
+			if path := findLocalPath(p.Name); path != "" {
+				recordHistory(p.Name)
+				return term.NewTab(p.Alias, expandHome(path), templateFor(p.Name))
 			}
 		}
 	}

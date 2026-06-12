@@ -31,9 +31,12 @@ template = ["nvim", "$SHELL"]
 # alias = 5   # chars reserved for the alias column
 # name  = 32  # chars reserved for the project name (annotation aligns after this)
 
-# Short aliases for projects (alias key is used as the tab title)
-# [aliases]
-# kw = "kitty-meow"
+# Short aliases and per-project settings.
+# "alias" sets the tab title; "template" overrides the global template for that project.
+# [[projects]]
+# name = "kitty-meow"
+# alias = "kw"
+# template = ["nvim", "just run", "$SHELL"]
 
 # Named project sets that open multiple projects at once
 # [[sets]]

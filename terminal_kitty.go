@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
-
-	"github.com/spf13/viper"
 )
 
 type KittyTerminal struct{}
@@ -77,14 +75,13 @@ func (k *KittyTerminal) sendText(windowID, command string) error {
 	return exec.Command("kitty", "@", "send-text", "--match", "id:"+windowID, command+"\n").Run()
 }
 
-func (k *KittyTerminal) NewTab(title, cwd string) error {
+func (k *KittyTerminal) NewTab(title, cwd string, template []string) error {
 	out, err := exec.Command("kitty", "@", "launch", "--type", "tab", "--title", title, "--tab-title", title, "--cwd", cwd).Output()
 	if err != nil {
 		return err
 	}
 	firstWindowID := strings.TrimSpace(string(out))
 
-	template := viper.GetStringSlice("template")
 	if len(template) == 0 {
 		return nil
 	}

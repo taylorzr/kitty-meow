@@ -48,11 +48,23 @@ func bindsAndHeader(emoji string, binds []bind) (string, string) {
 	return strings.Join(bindParts, ","), strings.Join(headerParts, " | ")
 }
 
-// aliasFor returns the alias key for the given real project name, or "".
+type projectConfig struct {
+	Name     string   `mapstructure:"name"`
+	Alias    string   `mapstructure:"alias"`
+	Template []string `mapstructure:"template"`
+}
+
+func getProjects() []projectConfig {
+	var projects []projectConfig
+	viper.UnmarshalKey("projects", &projects)
+	return projects
+}
+
+// aliasFor returns the alias for the given real project name, or "".
 func aliasFor(name string) string {
-	for alias, real := range viper.GetStringMapString("aliases") {
-		if real == name {
-			return alias
+	for _, p := range getProjects() {
+		if p.Name == name && p.Alias != "" {
+			return p.Alias
 		}
 	}
 	return ""
@@ -60,11 +72,25 @@ func aliasFor(name string) string {
 
 // nameFor returns the real project name for the given alias, or the alias itself if not found.
 func nameFor(alias string) string {
-	aliases := viper.GetStringMapString("aliases")
-	if real, ok := aliases[alias]; ok {
-		return real
+	for _, p := range getProjects() {
+		if p.Alias == alias {
+			return p.Name
+		}
 	}
 	return alias
+}
+
+// templateFor returns the pane template for the given project name or alias.
+// Falls back to the global template if no per-project template is set.
+func templateFor(name string) []string {
+	for _, p := range getProjects() {
+		if p.Name == name || p.Alias == name {
+			if len(p.Template) > 0 {
+				return p.Template
+			}
+		}
+	}
+	return viper.GetStringSlice("template")
 }
 
 func main() {

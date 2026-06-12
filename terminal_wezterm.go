@@ -6,8 +6,6 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-
-	"github.com/spf13/viper"
 )
 
 type WeztermTerminal struct{}
@@ -74,7 +72,7 @@ func (w *WeztermTerminal) sendText(paneID, text string) error {
 	return cmd.Run()
 }
 
-func (w *WeztermTerminal) NewTab(title, cwd string) error {
+func (w *WeztermTerminal) NewTab(title, cwd string, template []string) error {
 	out, err := exec.Command("wezterm", "cli", "spawn", "--cwd", cwd).Output()
 	if err != nil {
 		return err
@@ -86,7 +84,6 @@ func (w *WeztermTerminal) NewTab(title, cwd string) error {
 		return err
 	}
 
-	template := viper.GetStringSlice("template")
 	if len(template) == 0 {
 		return nil
 	}
