@@ -41,7 +41,7 @@ func bindsAndHeader(emoji string, binds []bind) (string, string) {
 	var bindParts, headerParts []string
 	for _, b := range binds {
 		if b.key == "" {
-			// FIXME: at least log an error or something
+			logf("WARNING bindsAndHeader: bind with empty key skipped (prompt: %q)", b.prompt)
 			continue
 		}
 		headerParts = append(headerParts, fmt.Sprintf("%s: %s", b.key, b.prompt))
@@ -96,6 +96,8 @@ func templateFor(name string) []string {
 }
 
 func main() {
+	initLogger()
+
 	home, _ := os.UserHomeDir()
 	viper.SetConfigName("config")
 	viper.SetConfigType("toml")

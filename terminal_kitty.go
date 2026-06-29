@@ -76,11 +76,14 @@ func (k *KittyTerminal) sendText(windowID, command string) error {
 }
 
 func (k *KittyTerminal) NewTab(title, cwd string, template []string) error {
+	logf("NewTab: title=%q cwd=%q template=%v", title, cwd, template)
 	out, err := exec.Command("kitty", "@", "launch", "--type", "tab", "--title", title, "--tab-title", title, "--cwd", cwd).Output()
 	if err != nil {
+		logError("NewTab: launch tab", err)
 		return err
 	}
 	firstWindowID := strings.TrimSpace(string(out))
+	logf("NewTab: created tab, firstWindowID=%s", firstWindowID)
 
 	if len(template) == 0 {
 		return nil
@@ -88,18 +91,24 @@ func (k *KittyTerminal) NewTab(title, cwd string, template []string) error {
 
 	if template[0] != "$SHELL" {
 		if err := k.sendText(firstWindowID, template[0]); err != nil {
+			logError("NewTab: sendText to firstWindow", err)
 			return err
 		}
 	}
 
-	for _, entry := range template[1:] {
-		out, err := exec.Command("kitty", "@", "launch", "--type", "window", "--dont-take-focus", "--cwd", cwd, "--title=current").Output()
+	lastWindowID := firstWindowID
+	for i, entry := range template[1:] {
+		logf("NewTab: launching pane %d after window %s", i+1, lastWindowID)
+		out, err := exec.Command("kitty", "@", "launch", "--type", "window", "--dont-take-focus", "--location", "after", "--next-to", "id:"+lastWindowID, "--cwd", cwd, "--title=current").Output()
 		if err != nil {
+			logError(fmt.Sprintf("NewTab: launch window %d", i+1), err)
 			return err
 		}
+		lastWindowID = strings.TrimSpace(string(out))
+		logf("NewTab: pane %d windowID=%s entry=%q", i+1, lastWindowID, entry)
 		if entry != "$SHELL" {
-			windowID := strings.TrimSpace(string(out))
-			if err := k.sendText(windowID, entry); err != nil {
+			if err := k.sendText(lastWindowID, entry); err != nil {
+				logError(fmt.Sprintf("NewTab: sendText to window %d", i+1), err)
 				return err
 			}
 		}
