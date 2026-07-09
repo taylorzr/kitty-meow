@@ -87,9 +87,10 @@ func newSwitchCmd() *cobra.Command {
 			if err := fzf.Run(); err != nil {
 				// NOTE: ctrl-c treated as normal exit
 				if err.Error() == "exit status 130" {
+					logf("switch: fzf cancelled by user")
 					return nil
 				}
-
+				logError("switch: fzf", err)
 				fmt.Fprintf(os.Stderr, "fzf failed: %v\nPress Enter to continue...", err)
 				tty, _ := os.Open("/dev/tty")
 				if tty != nil {
@@ -99,6 +100,7 @@ func newSwitchCmd() *cobra.Command {
 			}
 
 			selection := strings.TrimSpace(out.String())
+			logf("switch: fzf selection=%q", selection)
 			if selection == "" {
 				return nil
 			}
@@ -127,7 +129,9 @@ func newSwitchCmd() *cobra.Command {
 					if alias := aliasFor(title); alias != "" {
 						title = alias
 					}
+					logf("switch: closing tab %q", title)
 					if err := term.CloseTab(title); err != nil {
+						logError(fmt.Sprintf("switch: CloseTab %q", title), err)
 						fmt.Fprintf(os.Stderr, "failed to close tab %q: %v\n", title, err)
 					}
 				} else {
@@ -167,6 +171,7 @@ var ansiRe = regexp.MustCompile(`\x1b\[[0-9;]*m`)
 // All display items use aliasCol (parts[0]) as the first column; the identifier is parts[1].
 // When called recursively (e.g. from set expansion), selection is a bare project name or path.
 func handleSelection(selection string, cloneDir string) error {
+	logf("handleSelection: selection=%q cloneDir=%q", selection, cloneDir)
 	// Strip ANSI codes, then split on tabs. Do NOT TrimSpace the whole string first —
 	// the leading alias column is spaces that would otherwise eat the first tab separator.
 	raw := ansiRe.ReplaceAllString(selection, "")
@@ -186,22 +191,26 @@ func handleSelection(selection string, cloneDir string) error {
 	last := parts[len(parts)-1]
 	if strings.HasPrefix(last, "git@") || strings.HasPrefix(last, "https://") {
 		sshURL := last
+		logf("handleSelection: remote repo identifier=%q url=%q", identifier, sshURL)
 		recordHistory(identifier)
 		tabs, err := term.ListTabs()
 		if err == nil {
 			for _, t := range tabs {
 				if t.Title == identifier {
+					logf("handleSelection: focusing existing tab %q", identifier)
 					return term.FocusTab(identifier)
 				}
 			}
 		}
 		dest := expandHome(strings.TrimSuffix(cloneDir, "/") + "/" + identifier)
 		if _, err := os.Stat(dest); os.IsNotExist(err) {
+			logf("handleSelection: cloning %q into %q", sshURL, dest)
 			fmt.Printf("cloning %s into %s...\n", identifier, dest)
 			cloneCmd := exec.Command("git", "clone", sshURL, dest)
 			cloneCmd.Stdout = os.Stdout
 			cloneCmd.Stderr = os.Stderr
 			if err := cloneCmd.Run(); err != nil {
+				logError("handleSelection: git clone", err)
 				fmt.Fprintf(os.Stderr, "git clone failed: %v\nPress Enter to continue...", err)
 				tty, _ := os.Open("/dev/tty")
 				if tty != nil {
@@ -211,6 +220,7 @@ func handleSelection(selection string, cloneDir string) error {
 				return nil
 			}
 		}
+		logf("handleSelection: opening new tab for remote %q at %q", identifier, dest)
 		return term.NewTab(identifier, dest, templateFor(identifier))
 	}
 
@@ -218,6 +228,7 @@ func handleSelection(selection string, cloneDir string) error {
 	if strings.HasPrefix(identifier, "~/") || strings.HasPrefix(identifier, "/") {
 		path := expandHome(identifier)
 		name := path[strings.LastIndex(path, "/")+1:]
+		logf("handleSelection: local dir path=%q name=%q", path, name)
 		recordHistory(name)
 		// Tab may be open under the alias name rather than the real name.
 		alias := aliasFor(name)
@@ -225,6 +236,7 @@ func handleSelection(selection string, cloneDir string) error {
 		if err == nil {
 			for _, t := range tabs {
 				if t.Title == name || (alias != "" && t.Title == alias) {
+					logf("handleSelection: focusing existing tab %q", t.Title)
 					return term.FocusTab(t.Title)
 				}
 			}
@@ -234,33 +246,40 @@ func handleSelection(selection string, cloneDir string) error {
 		if alias != "" {
 			tabTitle = alias
 		}
+		logf("handleSelection: opening new tab %q at %q", tabTitle, path)
 		return term.NewTab(tabTitle, path, templateFor(name))
 	}
 
 	// Alias: identifier matches an alias key → use alias as tab title, resolve real name for path
 	for _, p := range getProjects() {
 		if p.Alias == identifier {
+			logf("handleSelection: matched alias %q → project %q", identifier, p.Name)
 			tabs, err := term.ListTabs()
 			if err == nil {
 				for _, t := range tabs {
 					if t.Title == p.Alias || t.Title == p.Name {
 						recordHistory(p.Name)
+						logf("handleSelection: focusing existing tab %q", t.Title)
 						return term.FocusTab(t.Title)
 					}
 				}
 			}
 			if path := findLocalPath(p.Name); path != "" {
 				recordHistory(p.Name)
+				logf("handleSelection: opening alias tab %q at %q", p.Alias, path)
 				return term.NewTab(p.Alias, expandHome(path), templateFor(p.Name))
 			}
+			logf("handleSelection: alias %q found but no local path for %q", identifier, p.Name)
 		}
 	}
 
 	// Set: expand to individual projects
 	for _, b := range getSets() {
 		if b.Name == identifier {
+			logf("handleSelection: expanding set %q → %v", identifier, b.Projects)
 			for _, project := range b.Projects {
 				if err := handleSelection(project, cloneDir); err != nil {
+					logError(fmt.Sprintf("handleSelection: set %q project %q", identifier, project), err)
 					fmt.Fprintf(os.Stderr, "set: failed to open %q: %v\n", project, err)
 				}
 			}
@@ -270,8 +289,10 @@ func handleSelection(selection string, cloneDir string) error {
 
 	// Open tab: focus if open, otherwise find local dir and open it
 	if path := findLocalPath(identifier); path != "" {
+		logf("handleSelection: resolved %q to local path %q", identifier, path)
 		return handleSelection(expandHome(path), cloneDir)
 	}
+	logf("handleSelection: fallback focus tab %q", identifier)
 	recordHistory(identifier)
 	return term.FocusTab(identifier)
 }

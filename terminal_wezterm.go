@@ -73,14 +73,18 @@ func (w *WeztermTerminal) sendText(paneID, text string) error {
 }
 
 func (w *WeztermTerminal) NewTab(title, cwd string, template []string) error {
+	logf("NewTab: title=%q cwd=%q template=%v", title, cwd, template)
 	out, err := exec.Command("wezterm", "cli", "spawn", "--cwd", cwd).Output()
 	if err != nil {
+		logError("NewTab: wezterm spawn", err)
 		return err
 	}
 	firstPaneID := strings.TrimSpace(string(out))
+	logf("NewTab: created tab, firstPaneID=%s", firstPaneID)
 
 	// Set tab title
 	if err := exec.Command("wezterm", "cli", "set-tab-title", "--pane-id", firstPaneID, title).Run(); err != nil {
+		logError("NewTab: set-tab-title", err)
 		return err
 	}
 
@@ -90,18 +94,23 @@ func (w *WeztermTerminal) NewTab(title, cwd string, template []string) error {
 
 	if template[0] != "$SHELL" {
 		if err := w.sendText(firstPaneID, template[0]+"\n"); err != nil {
+			logError("NewTab: sendText to firstPane", err)
 			return err
 		}
 	}
 
-	for _, entry := range template[1:] {
+	for i, entry := range template[1:] {
+		logf("NewTab: splitting pane %d from firstPaneID=%s", i+1, firstPaneID)
 		out, err := exec.Command("wezterm", "cli", "split-pane", "--pane-id", firstPaneID, "--cwd", cwd).Output()
 		if err != nil {
+			logError(fmt.Sprintf("NewTab: split-pane %d", i+1), err)
 			return err
 		}
 		if entry != "$SHELL" {
 			paneID := strings.TrimSpace(string(out))
+			logf("NewTab: pane %d paneID=%s entry=%q", i+1, paneID, entry)
 			if err := w.sendText(paneID, entry+"\n"); err != nil {
+				logError(fmt.Sprintf("NewTab: sendText to pane %d", i+1), err)
 				return err
 			}
 		}
@@ -110,6 +119,7 @@ func (w *WeztermTerminal) NewTab(title, cwd string, template []string) error {
 	// Return focus to the first pane
 	if len(template) > 1 {
 		if err := exec.Command("wezterm", "cli", "activate-pane", "--pane-id", firstPaneID).Run(); err != nil {
+			logError("NewTab: activate-pane", err)
 			return err
 		}
 	}

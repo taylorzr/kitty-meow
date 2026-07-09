@@ -10,6 +10,7 @@ import (
 
 
 func recordHistory(name string) error {
+	logf("recordHistory: %q", name)
 	if err := os.MkdirAll(meowDir, 0755); err != nil {
 		return err
 	}

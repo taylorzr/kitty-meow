@@ -36,15 +36,21 @@ func writeCache(owner string, repos []repo) error {
 func cachedListRepos(owner string, refresh bool) ([]repo, error) {
 	if !refresh {
 		if repos, err := readCache(owner); err == nil {
+			logf("cachedListRepos: cache hit for %q (%d repos)", owner, len(repos))
 			return repos, nil
 		}
+		logf("cachedListRepos: cache miss for %q, fetching from GitHub", owner)
+	} else {
+		logf("cachedListRepos: refresh requested for %q", owner)
 	}
 	repos, err := listRepos(owner)
 	if err != nil {
+		logError(fmt.Sprintf("cachedListRepos: listRepos %q", owner), err)
 		return nil, err
 	}
 	if refresh {
 		err = writeCache(owner, repos)
+		logError(fmt.Sprintf("cachedListRepos: writeCache %q", owner), err)
 	}
 	return repos, err
 }
@@ -80,6 +86,7 @@ query($login: String!, $cursor: String) {
 }`
 
 func listRepos(owner string) ([]repo, error) {
+	logf("listRepos: fetching repos for %q", owner)
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		return nil, fmt.Errorf("GITHUB_TOKEN is not set")
@@ -129,6 +136,7 @@ func listRepos(owner string) ([]repo, error) {
 		json.Unmarshal(owner["repositories"], &reposPage)
 
 		allRepos = append(allRepos, reposPage.Nodes...)
+		logf("listRepos: fetched page, total so far=%d hasNextPage=%v", len(allRepos), reposPage.PageInfo.HasNextPage)
 
 		if !reposPage.PageInfo.HasNextPage {
 			break
@@ -136,5 +144,6 @@ func listRepos(owner string) ([]repo, error) {
 		cursor = &reposPage.PageInfo.EndCursor
 	}
 
+	logf("listRepos: done, total=%d repos for %q", len(allRepos), owner)
 	return allRepos, nil
 }
