@@ -39,21 +39,21 @@ Ensure your go bin is in your path, e.g. `path+=("$HOME/go/bin")`.
 ### Configuration
 
 
-1. configure `~/.config/kitty/meow/config.toml`
+1. configure `~/.config/kitty-meow/meow.toml`
 2. update `~/.config/kitty/kitty.conf`
     - create keyboard shortcut for switching
-    - set your github token as env
+    - optionally set `GITHUB_TOKEN` env (not needed if using `gh` CLI)
 
-### config.toml
+### meow.toml
 
 Set at least dirs and github. More options can be seen in config.example.toml.
 
 ```toml
-# ~/.config/kitty/meow/config.toml
+# ~/.config/kitty-meow/meow.toml
 
 dirs  = [
   "~/code/", # dirs ending in / list all projects within
-  "~/.config/kitty/meow",  # otherwise the dir is treated as a single project
+  "~/.config/kitty-meow",  # otherwise the dir is treated as a single project
 ]
 
 github = ["taylorzr", "AquaTeenHungerForce"]
@@ -110,7 +110,7 @@ env GITHUB_TOKEN=<github_token>
 
 ## Migrating from v0
 
-Instead of flags on your switch command, kitty-meow is now configured with `~/.config/kitty/meow/config.toml`:
+Instead of flags on your switch command, kitty-meow is now configured with `~/.config/kitty-meow/meow.toml`:
 -  `--user` & `--org` flags > toml e.g. `github = ["taylorzr", "AquaTeenHungerForce"]`
 -  `--dirs` flags > toml e.g. `dirs = ["~/code/"]`
 

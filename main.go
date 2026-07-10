@@ -12,7 +12,7 @@ import (
 
 var configError string
 
-var meowDir = expandHome("~/.config/kitty/meow")
+var meowDir = expandHome("~/.config/kitty-meow")
 
 func cacheFile(owner string) string {
 	return filepath.Join(meowDir, "cache_"+owner)
@@ -99,7 +99,7 @@ func main() {
 	initLogger()
 
 	home, _ := os.UserHomeDir()
-	viper.SetConfigName("config")
+	viper.SetConfigName("meow")
 	viper.SetConfigType("toml")
 	viper.AddConfigPath(meowDir)
 	viper.SetDefault("dirs", []string{home + "/"})

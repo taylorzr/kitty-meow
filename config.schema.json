@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/taylorzr/kitty-meow/config.schema.json",
   "title": "kitty-meow config",
-  "description": "Configuration for kitty-meow (~/.config/kitty/meow/config.toml)",
+  "description": "Configuration for kitty-meow (~/.config/kitty-meow/meow.toml)",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -19,7 +19,7 @@
         "type": "string"
       },
       "examples": [
-        ["~/code/", "~/.config/kitty/meow"]
+        ["~/code/", "~/.config/kitty-meow"]
       ]
     },
     "github": {

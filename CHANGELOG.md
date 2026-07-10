@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - converted to go cli
-- now configured with ~/.config/kitty/meow/config.toml
+- now configured with ~/.config/kitty-meow/meow.toml
 
 ## [0.5.1] - 2025-2-1
 
