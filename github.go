@@ -130,7 +130,9 @@ func listRepos(owner string) ([]repo, error) {
 		}
 
 		data, err := io.ReadAll(resp.Body)
-		resp.Body.Close()
+		if err := resp.Body.Close(); err != nil {
+			logError("listRepos: close response body", err)
+		}
 		if err != nil {
 			return nil, err
 		}

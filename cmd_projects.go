@@ -159,7 +159,9 @@ type setConfig struct {
 
 func getSets() []setConfig {
 	var sets []setConfig
-	viper.UnmarshalKey("sets", &sets)
+	if err := viper.UnmarshalKey("sets", &sets); err != nil {
+		logError("getSets: UnmarshalKey", err)
+	}
 	return sets
 }
 

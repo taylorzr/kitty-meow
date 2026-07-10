@@ -1,13 +1,12 @@
 package main
 
 import (
+	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-	"github.com/spf13/viper"
 )
-
 
 func recordHistory(name string) error {
 	logf("recordHistory: %q", name)

@@ -94,8 +94,8 @@ func newSwitchCmd() *cobra.Command {
 				fmt.Fprintf(os.Stderr, "fzf failed: %v\nPress Enter to continue...", err)
 				tty, _ := os.Open("/dev/tty")
 				if tty != nil {
-					bufio.NewReader(tty).ReadBytes('\n')
-					tty.Close()
+					_, _ = bufio.NewReader(tty).ReadBytes('\n')
+					_ = tty.Close()
 				}
 			}
 
@@ -192,7 +192,7 @@ func handleSelection(selection string, cloneDir string) error {
 	if strings.HasPrefix(last, "git@") || strings.HasPrefix(last, "https://") {
 		sshURL := last
 		logf("handleSelection: remote repo identifier=%q url=%q", identifier, sshURL)
-		recordHistory(identifier)
+		logError("handleSelection: recordHistory", recordHistory(identifier))
 		tabs, err := term.ListTabs()
 		if err == nil {
 			for _, t := range tabs {
@@ -214,8 +214,8 @@ func handleSelection(selection string, cloneDir string) error {
 				fmt.Fprintf(os.Stderr, "git clone failed: %v\nPress Enter to continue...", err)
 				tty, _ := os.Open("/dev/tty")
 				if tty != nil {
-					bufio.NewReader(tty).ReadBytes('\n')
-					tty.Close()
+					_, _ = bufio.NewReader(tty).ReadBytes('\n')
+					_ = tty.Close()
 				}
 				return nil
 			}
@@ -229,7 +229,7 @@ func handleSelection(selection string, cloneDir string) error {
 		path := expandHome(identifier)
 		name := path[strings.LastIndex(path, "/")+1:]
 		logf("handleSelection: local dir path=%q name=%q", path, name)
-		recordHistory(name)
+		logError("handleSelection: recordHistory", recordHistory(name))
 		// Tab may be open under the alias name rather than the real name.
 		alias := aliasFor(name)
 		tabs, err := term.ListTabs()
@@ -258,14 +258,14 @@ func handleSelection(selection string, cloneDir string) error {
 			if err == nil {
 				for _, t := range tabs {
 					if t.Title == p.Alias || t.Title == p.Name {
-						recordHistory(p.Name)
+						logError("handleSelection: recordHistory", recordHistory(p.Name))
 						logf("handleSelection: focusing existing tab %q", t.Title)
 						return term.FocusTab(t.Title)
 					}
 				}
 			}
 			if path := findLocalPath(p.Name); path != "" {
-				recordHistory(p.Name)
+				logError("handleSelection: recordHistory", recordHistory(p.Name))
 				logf("handleSelection: opening alias tab %q at %q", p.Alias, path)
 				return term.NewTab(p.Alias, expandHome(path), templateFor(p.Name))
 			}
@@ -293,6 +293,6 @@ func handleSelection(selection string, cloneDir string) error {
 		return handleSelection(expandHome(path), cloneDir)
 	}
 	logf("handleSelection: fallback focus tab %q", identifier)
-	recordHistory(identifier)
+	logError("handleSelection: recordHistory", recordHistory(identifier))
 	return term.FocusTab(identifier)
 }

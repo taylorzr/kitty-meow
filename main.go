@@ -58,7 +58,9 @@ type projectConfig struct {
 
 func getProjects() []projectConfig {
 	var projects []projectConfig
-	viper.UnmarshalKey("projects", &projects)
+	if err := viper.UnmarshalKey("projects", &projects); err != nil {
+		logError("getProjects: UnmarshalKey", err)
+	}
 	return projects
 }
 
