@@ -66,7 +66,6 @@ If no dirs are set, projects will be listed and cloned to your home dir.
 ```conf
 # ~/.config/kitty/kitty.conf
 
-env GITHUB_TOKEN=<github_token>
 map ctrl+space kitty-meow switch
 map ctrl+- goto_tab -1
 
@@ -90,8 +89,15 @@ Caches aren't automatically updated, so re-run `kitty-meow cache` as needed.
 
 ## Github Auth
 
-You need to create a github token and set it as env GITHUB_TOKEN. You need to put env in your
-kitty config, not .zshrc. More about that
+kitty-meow will use `gh auth token` automatically if the [gh CLI](https://cli.github.com/) is
+installed and authenticated. This is the recommended approach:
+
+```sh
+gh auth login
+```
+
+Alternatively, set `GITHUB_TOKEN` as an env var. Note it must be set in your kitty config, not
+`.zshrc`. More about that
 [here](https://sw.kovidgoyal.net/kitty/faq/#things-behave-differently-when-running-kitty-from-system-launcher-vs-from-another-terminal).
 
 Because I commit kitty.conf to my dotfiles, I put any secrets in an extra conf file:

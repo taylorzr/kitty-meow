@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -85,11 +86,23 @@ query($login: String!, $cursor: String) {
     }
 }`
 
+func githubToken() (string, error) {
+	if out, err := exec.Command("gh", "auth", "token").Output(); err == nil {
+		if token := strings.TrimSpace(string(out)); token != "" {
+			return token, nil
+		}
+	}
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		return token, nil
+	}
+	return "", fmt.Errorf("no GitHub token found: install gh and run `gh auth login`, or set GITHUB_TOKEN")
+}
+
 func listRepos(owner string) ([]repo, error) {
 	logf("listRepos: fetching repos for %q", owner)
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		return nil, fmt.Errorf("GITHUB_TOKEN is not set")
+	token, err := githubToken()
+	if err != nil {
+		return nil, err
 	}
 
 	var allRepos []repo
