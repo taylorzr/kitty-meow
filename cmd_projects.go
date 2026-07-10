@@ -51,6 +51,7 @@ func newProjectsCmd() *cobra.Command {
 }
 
 func runProjects(refresh bool, mode string, flags ...string) ([]string, error) {
+	logf("runProjects: refresh=%v mode=%q sources=%v", refresh, mode, flags)
 	var items []string
 
 	prefix := ""

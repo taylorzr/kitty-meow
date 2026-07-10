@@ -27,6 +27,9 @@ func readCache(owner string) ([]repo, error) {
 }
 
 func writeCache(owner string, repos []repo) error {
+	if err := os.MkdirAll(meowDir, 0755); err != nil {
+		return fmt.Errorf("creating config dir: %w", err)
+	}
 	var lines []string
 	for _, r := range repos {
 		lines = append(lines, r.Name+" "+r.SSHUrl)
@@ -89,10 +92,12 @@ query($login: String!, $cursor: String) {
 func githubToken() (string, error) {
 	if out, err := exec.Command("gh", "auth", "token").Output(); err == nil {
 		if token := strings.TrimSpace(string(out)); token != "" {
+			logf("githubToken: using token from gh CLI")
 			return token, nil
 		}
 	}
 	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		logf("githubToken: using GITHUB_TOKEN env var")
 		return token, nil
 	}
 	return "", fmt.Errorf("no GitHub token found: install gh and run `gh auth login`, or set GITHUB_TOKEN")
@@ -142,11 +147,17 @@ func listRepos(owner string) ([]repo, error) {
 		}
 
 		var outer map[string]json.RawMessage
-		json.Unmarshal(result["data"], &outer)
-		var owner map[string]json.RawMessage
-		json.Unmarshal(outer["repositoryOwner"], &owner)
+		if err := json.Unmarshal(result["data"], &outer); err != nil {
+			return nil, fmt.Errorf("unexpected GitHub API response shape (data): %w", err)
+		}
+		var repoOwner map[string]json.RawMessage
+		if err := json.Unmarshal(outer["repositoryOwner"], &repoOwner); err != nil {
+			return nil, fmt.Errorf("unexpected GitHub API response shape (repositoryOwner): %w", err)
+		}
 		var reposPage repositories
-		json.Unmarshal(owner["repositories"], &reposPage)
+		if err := json.Unmarshal(repoOwner["repositories"], &reposPage); err != nil {
+			return nil, fmt.Errorf("unexpected GitHub API response shape (repositories): %w", err)
+		}
 
 		allRepos = append(allRepos, reposPage.Nodes...)
 		logf("listRepos: fetched page, total so far=%d hasNextPage=%v", len(allRepos), reposPage.PageInfo.HasNextPage)

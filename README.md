@@ -114,21 +114,85 @@ include ./dont_commit_me.conf
 env GITHUB_TOKEN=<github_token>
 ```
 
-## Migrating from v0
+## Migrating from the Python version
 
-Instead of flags on your switch command, kitty-meow is now configured with `~/.config/kitty-meow/meow.toml`:
--  `--user` & `--org` flags > toml e.g. `github = ["taylorzr", "AquaTeenHungerForce"]`
--  `--dirs` flags > toml e.g. `dirs = ["~/code/"]`
+The Go rewrite replaces the collection of Python kittens (`projects.py`, `cache.py`, `kill.py`) with
+a single `kitty-meow` binary. Configuration moves from flags on your kitty.conf keybindings into
+`~/.config/kitty-meow/meow.toml`.
 
-Project closing is now built into the main keybinding, so remove any keybinding like `map ctrl+shift+x kitten meow/kill.py`.
+### 1. Install the binary
 
-Caching is built into the main binary. You can create a keybinding, or just call the binary. See `kitty-meow cache --help`.
+Follow the [Installation](#installation) steps above to install `kitty-meow`.
 
-Fzf binary path is now a config, instead of env BIN_PATH, configure toml e.g. `fzf = "/opt/homebrew/bin/fzf"`.
+### 2. Create meow.toml
 
-Switch keybindings have changed but can all be configured, see ./config.example.toml.
+Create `~/.config/kitty-meow/meow.toml` and translate your old flags:
 
-A few new features have been added, like project aliases, and project sets. See docs above.
+| Old kitty.conf flag | New meow.toml key |
+|---|---|
+| `--dir $HOME/code/` (repeatable) | `dirs = ["~/code/"]` |
+| `--user taylorzr` | `github = ["taylorzr"]` |
+| `--org AquaTeenHungerForce` | `github = ["AquaTeenHungerForce"]` |
+| `env BIN_PATH=/opt/homebrew/bin/` | `fzf = "/opt/homebrew/bin/fzf"` |
+
+Example — if your old kitty.conf had:
+
+```conf
+env BIN_PATH=/opt/homebrew/bin/
+map ctrl+space kitten meow/projects.py load --dir $HOME/code/ --dir $HOME --user taylorzr --org AquaTeenHungerForce
+```
+
+Your new `~/.config/kitty-meow/meow.toml` would be:
+
+```toml
+dirs   = ["~/code/", "~/"]
+github = ["taylorzr", "AquaTeenHungerForce"]
+fzf    = "/opt/homebrew/bin/fzf"
+```
+
+### 3. Update kitty.conf keybindings
+
+Replace all the old kitten mappings with a single `kitty-meow switch` mapping:
+
+```conf
+# Remove these old lines:
+map ctrl+space   kitten meow/projects.py load --dir $HOME/code/ --user taylorzr
+map ctrl+shift+n kitten meow/projects.py new --dir $HOME/code/
+map ctrl+shift+g kitten meow/cache.py --org AquaTeenHungerForce
+map ctrl+shift+x kitten meow/kill.py
+
+# Replace with:
+map ctrl+space kitty-meow switch
+```
+
+Project closing (`kill.py`) is now a built-in fzf binding inside `kitty-meow switch` — no
+separate keybinding needed.
+
+### 4. GitHub auth
+
+The binary will automatically pick up a token from `gh auth token` if you have the
+[gh CLI](https://cli.github.com/) installed. If not, `GITHUB_TOKEN` (or `GH_TOKEN`) env vars
+still work. You can remove the `env GITHUB_TOKEN=...` line from kitty.conf if you use `gh`.
+
+### 5. Caching
+
+The cache command is now part of the binary:
+
+```conf
+# Old:
+map ctrl+shift+g kitten meow/cache.py --org AquaTeenHungerForce
+
+# New (optional — or just run kitty-meow cache from a terminal):
+map ctrl+shift+g kitty-meow cache
+```
+
+### 6. Clean up
+
+You can delete the old Python kitten directory:
+
+```sh
+rm -rf ~/.config/kitty/meow
+```
 
 ## Experimental Wezterm Support
 

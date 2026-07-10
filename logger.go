@@ -9,6 +9,10 @@ import (
 var logger *log.Logger
 
 func initLogger() {
+	if err := os.MkdirAll(meowDir, 0755); err != nil {
+		logger = log.New(os.Stderr, "", log.LstdFlags)
+		return
+	}
 	logPath := filepath.Join(meowDir, "meow.log")
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
