@@ -89,6 +89,72 @@ query($login: String!, $cursor: String) {
     }
 }`
 
+const viewerQuery = `
+query {
+    viewer {
+        login
+        organizations(first: 100) {
+            nodes { login }
+        }
+    }
+}`
+
+type viewerResult struct {
+	Login         string `json:"login"`
+	Organizations struct {
+		Nodes []struct {
+			Login string `json:"login"`
+		} `json:"nodes"`
+	} `json:"organizations"`
+}
+
+func fetchViewer() (viewerResult, error) {
+	token, err := githubToken()
+	if err != nil {
+		return viewerResult{}, err
+	}
+
+	body, _ := json.Marshal(graphqlRequest{Query: viewerQuery})
+	req, err := http.NewRequest("POST", "https://api.github.com/graphql", bytes.NewReader(body))
+	if err != nil {
+		return viewerResult{}, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return viewerResult{}, err
+	}
+	data, err := io.ReadAll(resp.Body)
+	if closeErr := resp.Body.Close(); closeErr != nil {
+		logError("fetchViewer: close response body", closeErr)
+	}
+	if err != nil {
+		return viewerResult{}, err
+	}
+	if resp.StatusCode != 200 {
+		return viewerResult{}, fmt.Errorf("GitHub API returned %d: %s", resp.StatusCode, data)
+	}
+
+	var result map[string]json.RawMessage
+	if err := json.Unmarshal(data, &result); err != nil {
+		return viewerResult{}, err
+	}
+	if errs, ok := result["errors"]; ok {
+		return viewerResult{}, fmt.Errorf("GraphQL errors: %s", errs)
+	}
+	var outer map[string]json.RawMessage
+	if err := json.Unmarshal(result["data"], &outer); err != nil {
+		return viewerResult{}, fmt.Errorf("unexpected GitHub API response shape (data): %w", err)
+	}
+	var viewer viewerResult
+	if err := json.Unmarshal(outer["viewer"], &viewer); err != nil {
+		return viewerResult{}, fmt.Errorf("unexpected GitHub API response shape (viewer): %w", err)
+	}
+	return viewer, nil
+}
+
 func githubToken() (string, error) {
 	if out, err := exec.Command("gh", "auth", "token").Output(); err == nil {
 		if token := strings.TrimSpace(string(out)); token != "" {

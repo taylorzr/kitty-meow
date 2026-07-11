@@ -29,11 +29,26 @@ On select
 
 Depends on fzf see [fzf installation](https://github.com/junegunn/fzf/#installation).
 
+**Download the latest release binary** (Linux/macOS):
+
+```sh
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+curl -s https://api.github.com/repos/taylorzr/kitty-meow/releases/latest \
+  | grep browser_download_url \
+  | grep "${OS}_${ARCH}" \
+  | cut -d'"' -f4 \
+  | xargs curl -sSL \
+  | tar -xz -C ~/.local/bin
+```
+
+Or install with Go:
+
 ```sh
 go install github.com/taylorzr/kitty-meow@latest
 ```
 
-Ensure your go bin is in your path, e.g. `path+=("$HOME/go/bin")`.
+Ensure your install dir is in your path (`~/.local/bin` or `~/go/bin`).
 
 
 ### Configuration
@@ -46,7 +61,7 @@ Ensure your go bin is in your path, e.g. `path+=("$HOME/go/bin")`.
 
 ### meow.toml
 
-Set at least dirs and github. More options can be seen in config.example.toml.
+Set at least dirs and github. More options can be seen in meow.example.toml.
 
 ```toml
 # ~/.config/kitty-meow/meow.toml
@@ -223,6 +238,7 @@ return config
 ## TODO
 
 - testing in CI, github actions?
+- tests
 - fix project ordering when swapping explicitly to default
 - support other git sources, like gitlab
 - cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?

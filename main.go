@@ -14,6 +14,13 @@ var configError string
 
 var meowDir = expandHome("~/.config/kitty-meow")
 
+// Set by goreleaser via -ldflags at build time.
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func cacheFile(owner string) string {
 	return filepath.Join(meowDir, "cache_"+owner)
 }
@@ -126,6 +133,14 @@ func main() {
 	rootCmd.AddCommand(newProjectsCmd())
 	rootCmd.AddCommand(newCacheCmd())
 	rootCmd.AddCommand(newSwitchCmd())
+	rootCmd.AddCommand(newInitCmd())
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "version",
+		Short: "Print version information",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("version: %s\ncommit:  %s\ndate:    %s\n", version, commit, date)
+		},
+	})
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

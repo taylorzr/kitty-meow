@@ -1,35 +1,18 @@
-# Terminal emulator: auto-detected from $TERM_PROGRAM if not set
-# terminal = "kitty"  # or "WezTerm"
-
 # Directories to search for projects.
 # Paths ending in / list all subdirectories as individual projects.
 dirs = [
   "~/code/",
 ]
 
-# GitHub users/orgs to fetch remote repos from (requires GITHUB_TOKEN env var)
-# github = ["taylorzr"]
+# GitHub users/orgs to fetch remote repos from
+github = ["taylorzr", "AquaTeenHungerForce"]
 
 # Commands run in each new pane when opening a project tab.
-# Use "$SHELL" as a placeholder for the default shell.
-template = ["nvim", "$SHELL"]
+# Use "$SHELL" as a placeholder for the default shell, and "$EDITOR" for the default editor.
+# template = ["$EDITOR", "$SHELL", "echo hi"]
 
 # Path to fzf binary (useful on macOS if fzf isn't on PATH)
 # fzf = "/opt/homebrew/bin/fzf"
-
-# Sources shown by default when switch launches (valid: open, local, remote, set, history)
-# default_sources = ["open", "local"]
-
-# Maximum number of history entries to keep
-# history_size = 10000
-
-# Hide directories starting with "." when listing local projects (default: true)
-# hide_dot_dirs = true
-
-# Column widths for the project picker display
-# [spacing]
-# alias = 5   # chars reserved for the alias column
-# name  = 32  # chars reserved for the project name (annotation aligns after this)
 
 # Short aliases and per-project settings.
 # "alias" sets the tab title; "template" overrides the global template for that project.
@@ -43,7 +26,13 @@ template = ["nvim", "$SHELL"]
 # name = "work"
 # projects = ["api", "frontend", "infra"]
 
-# fzf keybindings
+# Sources shown by default when switch launches (valid: open, local, remote, set, history)
+# default_sources = ["open", "local"]
+
+# Hide directories starting with "." when listing local projects (default: true)
+# hide_dot_dirs = true
+
+# FZF keybindings
 # [keybindings]
 # default = "ctrl-a"   # reload default sources
 # open    = "ctrl-o"   # show open tabs
@@ -52,3 +41,14 @@ template = ["nvim", "$SHELL"]
 # set     = "ctrl-s"   # show project sets
 # history = "ctrl-r"   # show recent history
 # close   = "ctrl-x"   # close an open tab
+
+# Terminal emulator: auto-detected from $TERM_PROGRAM if not set
+# terminal = "kitty"  # or "WezTerm"
+
+# Maximum number of history entries to keep
+# history_size = 10000
+
+# Column widths for the project picker display
+# [spacing]
+# alias = 5   # chars reserved for the alias column
+# name  = 32  # chars reserved for the project name (annotation aligns after this)

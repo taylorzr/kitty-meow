@@ -1,11 +1,8 @@
-alias i := install
-alias t := test
-
 install:
   go install .
 
 build:
-  go build .
+  go build -ldflags "-X main.version=$(git describe --tags --always) -X main.commit=$(git rev-parse --short HEAD) -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" .
 
 test:
   go test ./...
