@@ -64,7 +64,7 @@ func newSwitchCmd() *cobra.Command {
 				header = "\033[1;31m⚠ " + configError + "\033[0m\n" + header
 			}
 
-			fzf := exec.Command(viper.GetString("fzf"),
+			fzf := exec.Command(resolveBin(viper.GetString("fzf")),
 				"--prompt=🐈 switch > ",
 				"--header="+header,
 				"--bind="+binds,

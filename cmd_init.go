@@ -200,7 +200,7 @@ func newInitCmd() *cobra.Command {
 
 func fzfSelect(items []string) (string, error) {
 	fzfBin := viper.GetString("fzf")
-	p := exec.Command(fzfBin, "--multi", "--reverse", "--prompt=🐈 meow > ", "--header=Select GitHub users/orgs to include (tab to select multiple)")
+	p := exec.Command(resolveBin(fzfBin), "--multi", "--reverse", "--prompt=🐈 meow > ", "--header=Select GitHub users/orgs to include (tab to select multiple)")
 	p.Stdin = strings.NewReader(strings.Join(items, "\n"))
 	p.Stderr = os.Stderr
 	out, err := p.Output()

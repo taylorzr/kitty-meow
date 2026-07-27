@@ -118,6 +118,7 @@ func main() {
 	viper.SetDefault("dirs", []string{home + "/"})
 	viper.SetDefault("template", []string{"$EDITOR", "$SHELL"})
 	viper.SetDefault("fzf", "fzf")
+	viper.SetDefault("gh", "gh")
 	viper.SetDefault("history_size", 10000)
 	viper.SetDefault("spacing.alias", 5)
 	viper.SetDefault("spacing.name", 32)
@@ -138,6 +139,7 @@ func main() {
 	rootCmd.AddCommand(newCacheCmd())
 	rootCmd.AddCommand(newSwitchCmd())
 	rootCmd.AddCommand(newInitCmd())
+	rootCmd.AddCommand(newHealthCmd())
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "version",
 		Short: "Print version information",

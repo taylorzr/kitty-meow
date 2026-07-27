@@ -2,8 +2,32 @@ package main
 
 import (
 	"fmt"
+	"os/exec"
+	"path/filepath"
 	"time"
 )
+
+// commonBinPaths returns common install locations for a binary on macOS and Linux.
+func commonBinPaths(name string) []string {
+	return []string{
+		filepath.Join("/opt/homebrew/bin", name), // macOS Apple Silicon
+		filepath.Join("/usr/local/bin", name),    // macOS Intel / Linux Homebrew
+	}
+}
+
+// resolveBin finds an executable by trying the given name, then common install
+// locations. Returns the resolved path or the original name if not found.
+func resolveBin(name string) string {
+	if _, err := exec.LookPath(name); err == nil {
+		return name
+	}
+	for _, p := range commonBinPaths(name) {
+		if _, err := exec.LookPath(p); err == nil {
+			return p
+		}
+	}
+	return name
+}
 
 func relativeTime(d time.Duration) string {
 	hours := int(d.Hours())

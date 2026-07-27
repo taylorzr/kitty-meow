@@ -9,6 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 func readCache(owner string) ([]repo, error) {
@@ -154,21 +156,9 @@ func fetchViewer() (viewerResult, error) {
 }
 
 func githubToken() (string, error) {
-	// Try gh CLI on PATH (works in normal terminals).
-	if token, err := ghAuthToken("gh"); err == nil {
+	if token, err := ghAuthToken(); err == nil {
 		return token, nil
 	}
-	// When launched from a keybinding (e.g. kitty), the shell may not be a login
-	// shell so gh isn't on PATH. Try common install locations.
-	for _, path := range []string{
-		"/opt/homebrew/bin/gh", // macOS Apple Silicon
-		"/usr/local/bin/gh",    // macOS Intel / Linux Homebrew
-	} {
-		if token, err := ghAuthToken(path); err == nil {
-			return token, nil
-		}
-	}
-	// Official gh CLI env vars.
 	if token := os.Getenv("GH_TOKEN"); token != "" {
 		logf("githubToken: using GH_TOKEN env var")
 		return token, nil
@@ -180,16 +170,17 @@ func githubToken() (string, error) {
 	return "", fmt.Errorf("no GitHub token found: install gh and run `gh auth login`, or set GITHUB_TOKEN")
 }
 
-func ghAuthToken(cmd string) (string, error) {
-	out, err := exec.Command(cmd, "auth", "token").Output()
+func ghAuthToken() (string, error) {
+	gh := resolveBin(viper.GetString("gh"))
+	out, err := exec.Command(gh, "auth", "token").Output()
 	if err != nil {
 		return "", err
 	}
 	token := strings.TrimSpace(string(out))
 	if token == "" {
-		return "", fmt.Errorf("empty token from %s", cmd)
+		return "", fmt.Errorf("empty token from %s", gh)
 	}
-	logf("githubToken: using token from %s", cmd)
+	logf("githubToken: using token from %s", gh)
 	return token, nil
 }
 
