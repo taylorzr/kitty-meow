@@ -32,7 +32,12 @@ func newProjectsCmd() *cobra.Command {
 			}
 			items, err := runProjects(false, mode, include...)
 			if err != nil {
-				return err
+				// Print to stdout so the message appears inside fzf when
+				// this command is run as a reload subprocess (2>&1 only
+				// helps when stderr is inherited; cobra writes to the
+				// command's stderr which may not reach fzf's stdin).
+				fmt.Fprintf(os.Stdout, "\033[31m⚠ %s\033[0m\n", err)
+				return nil
 			}
 			if len(items) > 0 {
 				fmt.Print(strings.Join(items, "\n") + "\n")

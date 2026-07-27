@@ -237,8 +237,8 @@ return config
 
 ## TODO
 
-- testing in CI, github actions?
-- tests
+- ssh project support
+- more tests
 - fix project ordering when swapping explicitly to default
 - support other git sources, like gitlab
 - cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?

@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -13,6 +15,8 @@ import (
 var configError string
 
 var meowDir = expandHome("~/.config/kitty-meow")
+
+var httpClient = &http.Client{Timeout: 15 * time.Second}
 
 // Set by goreleaser via -ldflags at build time.
 var (

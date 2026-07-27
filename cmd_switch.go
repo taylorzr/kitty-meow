@@ -39,6 +39,9 @@ func newSwitchCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			// Shell-quote the executable path so fzf reload commands are safe
+			// even if the path contains spaces.
+			quotedExe := "'" + strings.ReplaceAll(exe, "'", "'\\''") + "'"
 
 			defaultFlags := defaultSourceFlags()
 			initial, err := runProjects(false, "open", defaultFlags...)
@@ -46,15 +49,15 @@ func newSwitchCmd() *cobra.Command {
 				return err
 			}
 
-			defaultCmd := fmt.Sprintf("%s projects %s --mode=open 2>&1", exe, strings.Join(defaultFlags, " "))
+			defaultCmd := fmt.Sprintf("%s projects %s --mode=open 2>&1", quotedExe, strings.Join(defaultFlags, " "))
 			binds, header := bindsAndHeader("🐈", []bind{
-				{viper.GetString("keybindings.remote"), "remote", fmt.Sprintf("%s projects --remote --mode=open 2>&1", exe)},
-				{viper.GetString("keybindings.local"), "local", fmt.Sprintf("%s projects --local --mode=open 2>&1", exe)},
-				{viper.GetString("keybindings.open"), "open", fmt.Sprintf("%s projects --open --mode=open 2>&1", exe)},
-				{viper.GetString("keybindings.history"), "history", fmt.Sprintf("%s projects --history --mode=open 2>&1", exe)},
-				{viper.GetString("keybindings.set"), "set", fmt.Sprintf("%s projects --set --mode=open 2>&1", exe)},
+				{viper.GetString("keybindings.remote"), "remote", fmt.Sprintf("%s projects --remote --mode=open 2>&1", quotedExe)},
+				{viper.GetString("keybindings.local"), "local", fmt.Sprintf("%s projects --local --mode=open 2>&1", quotedExe)},
+				{viper.GetString("keybindings.open"), "open", fmt.Sprintf("%s projects --open --mode=open 2>&1", quotedExe)},
+				{viper.GetString("keybindings.history"), "history", fmt.Sprintf("%s projects --history --mode=open 2>&1", quotedExe)},
+				{viper.GetString("keybindings.set"), "set", fmt.Sprintf("%s projects --set --mode=open 2>&1", quotedExe)},
 				{viper.GetString("keybindings.default"), "default", defaultCmd},
-				{viper.GetString("keybindings.close"), "close", fmt.Sprintf("%s projects --open --mode=close 2>&1", exe)},
+				{viper.GetString("keybindings.close"), "close", fmt.Sprintf("%s projects --open --mode=close 2>&1", quotedExe)},
 			})
 
 			if configError != "" {
