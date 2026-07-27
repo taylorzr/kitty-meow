@@ -12,3 +12,9 @@ linters:
     - ineffassign   # unused assignments
     - staticcheck   # static analysis
     - unused        # unused code
+
+  exclusions:
+    rules:
+      - linters:
+          - errcheck
+        text: "fmt\\.Fprintf"
