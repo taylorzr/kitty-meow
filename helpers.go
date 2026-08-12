@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -27,6 +28,54 @@ func resolveBin(name string) string {
 		}
 	}
 	return name
+}
+
+// parseGitURL extracts the repo name from an SSH (git@host:owner/repo(.git))
+// or HTTPS (https://host/owner/repo(.git)) URL. Returns ok=false for anything
+// that doesn't look like a git URL.
+func parseGitURL(url string) (name string, ok bool) {
+	u := strings.TrimSpace(url)
+	var path string
+	switch {
+	case strings.HasPrefix(u, "git@"):
+		// git@host:owner/repo(.git)
+		parts := strings.SplitN(u, ":", 2)
+		if len(parts) != 2 {
+			return "", false
+		}
+		path = parts[1]
+	case strings.HasPrefix(u, "https://"):
+		// https://host/owner/repo(.git)
+		rest := strings.TrimPrefix(u, "https://")
+		if i := strings.Index(rest, "/"); i >= 0 {
+			path = rest[i+1:]
+		}
+	default:
+		return "", false
+	}
+	// Require at least owner/repo so user pages ("https://github.com/user")
+	// aren't mistaken for repositories.
+	if path == "" || !strings.Contains(path, "/") {
+		return "", false
+	}
+	return gitRepoName(path)
+}
+
+// gitRepoName returns the last path segment of a repo path, stripped of a
+// trailing ".git". A trailing slash is ignored.
+func gitRepoName(path string) (string, bool) {
+	path = strings.TrimSuffix(path, "/")
+	if i := strings.LastIndex(path, "/"); i >= 0 {
+		path = path[i+1:]
+	}
+	if path == "" {
+		return "", false
+	}
+	path = strings.TrimSuffix(path, ".git")
+	if path == "" {
+		return "", false
+	}
+	return path, true
 }
 
 func relativeTime(d time.Duration) string {

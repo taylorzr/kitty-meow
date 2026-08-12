@@ -35,6 +35,20 @@ func newSwitchCmd() *cobra.Command {
 		Use:   "switch",
 		Short: "Switch project via fzf",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Direct clone mode: kitty-meow switch <git-url> [<git-url>...]
+			if len(args) > 0 {
+				cloneDir := cloneDirFromConfig()
+				for _, arg := range args {
+					if name, ok := parseGitURL(arg); ok {
+						logf("switch: arg URL %q name=%q", arg, name)
+						if err := handleSelection("\t"+name+"\t"+arg, cloneDir); err != nil {
+							fmt.Fprintf(os.Stderr, "failed to open %q: %v\n", arg, err)
+						}
+					}
+				}
+				return nil
+			}
+
 			exe, err := os.Executable()
 			if err != nil {
 				return err
@@ -63,6 +77,7 @@ func newSwitchCmd() *cobra.Command {
 			if configError != "" {
 				header = "\033[1;31m⚠ " + configError + "\033[0m\n" + header
 			}
+			header += " | paste git url to clone"
 
 			fzf := exec.Command(resolveBin(viper.GetString("fzf")),
 				"--prompt=🐈 switch > ",
@@ -73,6 +88,7 @@ func newSwitchCmd() *cobra.Command {
 				"--multi",
 				"--delimiter=\t",
 				"--with-nth=2..",
+				"--print-query",
 			)
 
 			dryRun, _ := cmd.Flags().GetBool("dry-run")
@@ -87,33 +103,52 @@ func newSwitchCmd() *cobra.Command {
 			fzf.Stdin = strings.NewReader(strings.Join(initial, "\n"))
 			fzf.Stdout = &out
 			fzf.Stderr = os.Stderr
-			if err := fzf.Run(); err != nil {
+			err = fzf.Run()
+			if err != nil {
 				// NOTE: ctrl-c treated as normal exit
 				if err.Error() == "exit status 130" {
 					logf("switch: fzf cancelled by user")
 					return nil
 				}
-				logError("switch: fzf", err)
-				fmt.Fprintf(os.Stderr, "fzf failed: %v\nPress Enter to continue...", err)
-				tty, _ := os.Open("/dev/tty")
-				if tty != nil {
-					_, _ = bufio.NewReader(tty).ReadBytes('\n')
-					_ = tty.Close()
+				// exit status 1 = no match; the query may be a git URL to clone,
+				// otherwise treat as a silent cancel.
+				if err.Error() != "exit status 1" {
+					logError("switch: fzf", err)
+					fmt.Fprintf(os.Stderr, "fzf failed: %v\nPress Enter to continue...", err)
+					tty, _ := os.Open("/dev/tty")
+					if tty != nil {
+						_, _ = bufio.NewReader(tty).ReadBytes('\n')
+						_ = tty.Close()
+					}
+					return nil
 				}
+				logf("switch: fzf exited with no match")
 			}
 
-			selection := strings.TrimSpace(out.String())
-			logf("switch: fzf selection=%q", selection)
-			if selection == "" {
+			// --print-query: the first output line is always the query.
+			lines := strings.Split(out.String(), "\n")
+			for len(lines) > 0 && lines[len(lines)-1] == "" {
+				lines = lines[:len(lines)-1]
+			}
+			logf("switch: fzf output=%q", lines)
+			if len(lines) == 0 {
 				return nil
 			}
 
-			cloneDir := ""
-			dirs := viper.GetStringSlice("dirs")
-			if len(dirs) > 0 {
-				cloneDir = dirs[0]
+			query := strings.TrimSpace(lines[0])
+			if len(lines) == 1 {
+				// No selection; clone the query if it's a git URL.
+				if name, ok := parseGitURL(query); ok {
+					logf("switch: cloning URL from query %q", query)
+					if err := handleSelection("\t"+name+"\t"+query, cloneDirFromConfig()); err != nil {
+						fmt.Fprintf(os.Stderr, "failed to open %q: %v\n", query, err)
+					}
+				}
+				return nil
 			}
-			for _, line := range strings.Split(selection, "\n") {
+
+			cloneDir := cloneDirFromConfig()
+			for _, line := range lines[1:] {
 				line = strings.TrimSpace(line)
 				if line == "" {
 					continue
@@ -148,6 +183,14 @@ func newSwitchCmd() *cobra.Command {
 	}
 	cmd.Flags().Bool("dry-run", false, "Print the fzf command and input instead of running it")
 	return cmd
+}
+
+func cloneDirFromConfig() string {
+	dirs := viper.GetStringSlice("dirs")
+	if len(dirs) > 0 {
+		return dirs[0]
+	}
+	return ""
 }
 
 func findLocalPath(name string) string {
