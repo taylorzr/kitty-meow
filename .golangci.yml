@@ -1,0 +1,20 @@
+version: "2"
+
+formatters:
+  enable:
+    - gofmt
+
+linters:
+  default: none
+  enable:
+    - errcheck      # unchecked errors
+    - govet         # go vet checks
+    - ineffassign   # unused assignments
+    - staticcheck   # static analysis
+    - unused        # unused code
+
+  exclusions:
+    rules:
+      - linters:
+          - errcheck
+        text: "fmt\\.Fprintf"

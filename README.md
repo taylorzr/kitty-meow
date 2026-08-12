@@ -1,19 +1,20 @@
 # Kitty-Meow
 
-Meow is a kitty terminal extension for working with projects, where each kitty tab is a different
+Meow is a kitty terminal tool for working with projects, where each kitty tab is a different
 project. It allows you to fuzzy switch between projects, and load them either from local directories or github.
 
 If you've used tmux, this is similar to switching between sessions, but allows you to
-create new sessions as well.
+easily create new sessions as well.
 
 ![Meow Screenshot](screenshot.png)
 
-## Usage
+## Basic Usage
 
 [1-minute demo](https://www.youtube.com/watch?v=Qm8Xl4GAylI)
 
-Call your project mapping, e.g. ctrl-space, and hit enter to select. Initially, tabs & local projects
-are listed, but you can show remote, local project only, or tabs only.
+Call your switch mapping, e.g. ctrl-space, type to filter, and hit enter to select. Initially, tabs
+& local projects are listed, but you can show only remote, or local, or open.
+
 
 On select
 
@@ -21,91 +22,100 @@ On select
 - if the project is a local dir, meow creates a new tab
 - if the project is github, meow clones to the first --dir, and creates a new tab
 
-## Installation
-
-```sh
-git clone git@github.com:taylorzr/kitty-meow.git ~/.config/kitty/meow
-```
-
-Requires [fzf](https://github.com/junegunn/fzf/) and tac (provided by coreutils).
 
 ## Getting Started
 
-You'll need to:
+### Installation
 
-- create mappings
-- set your github token as env
+Depends on fzf see [fzf installation](https://github.com/junegunn/fzf/#installation).
 
-For example:
+**Download the latest release binary** (Linux/macOS):
+
+```sh
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+curl -s https://api.github.com/repos/taylorzr/kitty-meow/releases/latest \
+  | grep browser_download_url \
+  | grep "${OS}_${ARCH}" \
+  | cut -d'"' -f4 \
+  | xargs curl -sSL \
+  | tar -xz -C ~/.local/bin
+```
+
+Or install with Go:
+
+```sh
+go install github.com/taylorzr/kitty-meow@latest
+```
+
+Ensure your install dir is in your path (`~/.local/bin` or `~/go/bin`).
+
+
+### Configuration
+
+
+1. configure `~/.config/kitty-meow/meow.toml`
+2. update `~/.config/kitty/kitty.conf`
+    - create keyboard shortcut for switching
+    - optionally set `GITHUB_TOKEN` env (not needed if using `gh` CLI)
+
+### meow.toml
+
+Set at least dirs and github. More options can be seen in meow.example.toml.
+
+```toml
+# ~/.config/kitty-meow/meow.toml
+
+dirs  = [
+  "~/code/", # dirs ending in / list all projects within
+  "~/.config/kitty-meow",  # otherwise the dir is treated as a single project
+]
+
+github = ["taylorzr", "AquaTeenHungerForce"]
+```
+
+If no dirs are set, projects will be listed and cloned to your home dir.
+
+### kitty.conf
 
 ```conf
 # ~/.config/kitty/kitty.conf
 
-env GITHUB_TOKEN=<github_token>
-env BIN_PATH=/opt/homebrew/bin/ # probably only needed on macs
-
-map ctrl+space kitten meow/projects.py load --dir $HOME/code/ --dir $HOME --dir $HOME/.config/kitty/meow --user taylorzr
+map ctrl+space kitty-meow switch
 map ctrl+- goto_tab -1
-map ctrl+shift+n kitten meow/projects.py new --dir $HOME/code/
-map ctrl+shift+g kitten meow/cache.py --org AquaTeenHungerForce
-map ctrl+shift+x kitten meow/kill.py
+
+# optional: this keeps tab title set to project name
+window_title_format {tab.title}
+# ensure you new pane binding includes `--title=current`
+map ctrl+enter launch --cwd=current --title=current
 ```
 
-## Kitty Mappings
+## Caching github repositories
 
-#### Loading projects
+If you work in an org with lots of repos, listing remote projects can be very slow. So you can
+cache the list with `kitty-meow cache <owner>` e.g. `kitty-meow cache taylorzr`.
 
-Create a mapping for loading projects. The pattern is:
+- list the current caches with `kitty-meow cache --list`
+- refresh all the caches with `kitty-meow cache`
+- refresh a specific with `kitty-meow cache <owner>`
+- delete a cache with `kitty-meow cache --remove <owner>`
 
-```conf
-# ~/.config/kitty/kitty.conf
-
-map ctrl+p kitten meow/project.py load --dir $HOME/code/ --user <you> --org <github_org>
-```
-
---dir can be provided multiple times.
-
-- when a dir ends in /, meow shows all it's subdirs
-- otherwise, meow only shows that specific dir
-- remote repos are cloned into the first --dir
-
-For example, I use:
-
-```conf
-# ~/.config/kitty/kitty.conf
-
-map ctrl+p kitten meow/project.py load --dir $HOME/code/ --dir $HOME --dir $HOME/.config/kitty/meow --org my_cool_org
-```
-
-On mac, paths are goofy. You proabably need to set env BIN_PATH as well. This should be the dir
-containing and fzf.
-
-```conf
-# ~/.config/kitty/kitty.conf
-
-env BIN_PATH=/opt/homebrew/bin/
-```
-
-#### Caching github repositories
-
-If you work in an org with lots of repos, loading remote projects can be slow. You can create a
-binding that will cache all the repos for orgs. This is a manual process, just run it whenever you
-need to update the list of projects for an org.
-
-```conf
-map ctrl+shift+g kitten meow/cache.py --org my_cool_org
-```
-
-Just like the projects.py load mapping, you can specify multiple users and orgs in your cache mapping.
-You might want these to be different than users and orgs in your projects.py load mapping, because an
-org might have lots of repos, but your user just a few. Any uncached users/orgs repos will be
-loaded from github on every call to projects.py load. And the cache never expires, you must call
-cache.py to refresh it.
+Caches aren't automatically updated, so re-run `kitty-meow cache` as needed.
 
 ## Github Auth
 
-You need to create a github token, and set it as env GITHUB_TOKEN. Because I commit kitty.conf to my
-dotfiles, I put any secrets in an extra conf file:
+kitty-meow will use `gh auth token` automatically if the [gh CLI](https://cli.github.com/) is
+installed and authenticated. This is the recommended approach:
+
+```sh
+gh auth login
+```
+
+Alternatively, set `GITHUB_TOKEN` as an env var. Note it must be set in your kitty config, not
+`.zshrc`. More about that
+[here](https://sw.kovidgoyal.net/kitty/faq/#things-behave-differently-when-running-kitty-from-system-launcher-vs-from-another-terminal).
+
+Because I commit kitty.conf to my dotfiles, I put any secrets in an extra conf file:
 
 ```conf
 # ~/.config/kitty/kitty.conf
@@ -119,14 +129,116 @@ include ./dont_commit_me.conf
 env GITHUB_TOKEN=<github_token>
 ```
 
-You need to put env in your kitty config, not .zshrc. More about that [here](https://sw.kovidgoyal.net/kitty/faq/#things-behave-differently-when-running-kitty-from-system-launcher-vs-from-another-terminal)
+## Migrating from the Python version
+
+The Go rewrite replaces the collection of Python kittens (`projects.py`, `cache.py`, `kill.py`) with
+a single `kitty-meow` binary. Configuration moves from flags on your kitty.conf keybindings into
+`~/.config/kitty-meow/meow.toml`.
+
+### 1. Install the binary
+
+Follow the [Installation](#installation) steps above to install `kitty-meow`.
+
+### 2. Create meow.toml
+
+Create `~/.config/kitty-meow/meow.toml` and translate your old flags:
+
+| Old kitty.conf flag | New meow.toml key |
+|---|---|
+| `--dir $HOME/code/` (repeatable) | `dirs = ["~/code/"]` |
+| `--user taylorzr` | `github = ["taylorzr"]` |
+| `--org AquaTeenHungerForce` | `github = ["AquaTeenHungerForce"]` |
+| `env BIN_PATH=/opt/homebrew/bin/` | `fzf = "/opt/homebrew/bin/fzf"` |
+
+Example — if your old kitty.conf had:
+
+```conf
+env BIN_PATH=/opt/homebrew/bin/
+map ctrl+space kitten meow/projects.py load --dir $HOME/code/ --dir $HOME --user taylorzr --org AquaTeenHungerForce
+```
+
+Your new `~/.config/kitty-meow/meow.toml` would be:
+
+```toml
+dirs   = ["~/code/", "~/"]
+github = ["taylorzr", "AquaTeenHungerForce"]
+fzf    = "/opt/homebrew/bin/fzf"
+```
+
+### 3. Update kitty.conf keybindings
+
+Replace all the old kitten mappings with a single `kitty-meow switch` mapping:
+
+```conf
+# Remove these old lines:
+map ctrl+space   kitten meow/projects.py load --dir $HOME/code/ --user taylorzr
+map ctrl+shift+n kitten meow/projects.py new --dir $HOME/code/
+map ctrl+shift+g kitten meow/cache.py --org AquaTeenHungerForce
+map ctrl+shift+x kitten meow/kill.py
+
+# Replace with:
+map ctrl+space kitty-meow switch
+```
+
+Project closing (`kill.py`) is now a built-in fzf binding inside `kitty-meow switch` — no
+separate keybinding needed.
+
+### 4. GitHub auth
+
+The binary will automatically pick up a token from `gh auth token` if you have the
+[gh CLI](https://cli.github.com/) installed. If not, `GITHUB_TOKEN` (or `GH_TOKEN`) env vars
+still work. You can remove the `env GITHUB_TOKEN=...` line from kitty.conf if you use `gh`.
+
+### 5. Caching
+
+The cache command is now part of the binary:
+
+```conf
+# Old:
+map ctrl+shift+g kitten meow/cache.py --org AquaTeenHungerForce
+
+# New (optional — or just run kitty-meow cache from a terminal):
+map ctrl+shift+g kitty-meow cache
+```
+
+### 6. Clean up
+
+You can delete the old Python kitten directory:
+
+```sh
+rm -rf ~/.config/kitty/meow
+```
+
+## Experimental Wezterm Support
+
+Added support for wezterm in addition to kitty. This is very much experimental, and may be removed in the future.
+
+```lua
+# ~/.config/wezterm/wezterm.lua
+
+local wezterm = require 'wezterm'
+local config = wezterm.config_builder()
+
+config.default_prog = { 'zsh' }
+
+config.keys = {
+  {
+    key = 'Space',
+    mods = 'CTRL',
+    action = wezterm.action.SplitPane {
+      direction = 'Down',
+      command = { args = { os.getenv("HOME") .. '/go/bin/kitty-meow', 'switch' } },
+    },
+  }
+}
+
+return config
+```
 
 ## TODO
 
-- configurable fzf bindings
-- selectable dir to clone to?
-  - some people might use 1 dir for work and one for personal?
-- maybe use flags like --login=user=taylorzr --login=org=my_cool_org
-- combine the scripts into one cli with subcommands
-  - we could then have a fzf binding for loading new projects from the normal project selection
-- caching all repos should remove unknown files, e.g. i stop caching taylorzr, i need to delete cache_taylorzr
+- ssh project support
+- more tests
+- fix project ordering when swapping explicitly to default
+- support other git sources, like gitlab
+- cmds to go out/in of projects like vim ctrl-o/i, maybe ctrl-shift-o/i?

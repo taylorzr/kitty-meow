@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/taylorzr/kitty-meow/config.schema.json",
+  "title": "kitty-meow config",
+  "description": "Configuration for kitty-meow (~/.config/kitty-meow/meow.toml)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "terminal": {
+      "type": "string",
+      "description": "Terminal emulator to use. Auto-detected from $TERM_PROGRAM if not set.",
+      "enum": ["kitty", "WezTerm"],
+      "examples": ["kitty", "WezTerm"]
+    },
+    "dirs": {
+      "type": "array",
+      "description": "Directories to search for projects. Paths ending in '/' list all subdirectories as projects. Supports ~ expansion.",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        ["~/code/", "~/.config/kitty-meow"]
+      ]
+    },
+    "github": {
+      "type": "array",
+      "description": "GitHub usernames and/or organization names to fetch remote repos from.",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        ["taylorzr", "AquaTeenHungerForce"]
+      ]
+    },
+    "template": {
+      "type": "array",
+      "description": "Commands to run when opening a new project tab. Use '$SHELL' as a placeholder for the default shell.",
+      "items": {
+        "type": "string"
+      },
+      "default": ["$EDITOR", "$SHELL"],
+      "examples": [
+        ["nvim", "$SHELL"],
+        ["$SHELL"]
+      ]
+    },
+    "fzf": {
+      "type": "string",
+      "description": "Path to the fzf binary. Useful on macOS where fzf may not be on PATH.",
+      "default": "fzf",
+      "examples": ["/opt/homebrew/bin/fzf", "fzf"]
+    },
+    "default_sources": {
+      "type": "array",
+      "description": "Sources shown by default when 'meow switch' launches and when the default keybinding is pressed.",
+      "items": {
+        "type": "string",
+        "enum": ["open", "local", "remote", "set", "history"]
+      },
+      "default": ["open", "local"],
+      "examples": [
+        ["open", "local"],
+        ["local"],
+        ["open", "local", "history"]
+      ]
+    },
+    "history_size": {
+      "type": "integer",
+      "description": "Maximum number of history entries to keep.",
+      "default": 10000,
+      "minimum": 1,
+      "examples": [10000, 500]
+    },
+    "hide_dot_dirs": {
+      "type": "boolean",
+      "description": "When listing local projects, hide directories whose names start with '.'. Set to false to show them.",
+      "default": true,
+      "examples": [true, false]
+    },
+    "spacing": {
+      "type": "object",
+      "description": "Column widths for the project picker display.",
+      "additionalProperties": false,
+      "properties": {
+        "alias": {
+          "type": "integer",
+          "description": "Width in characters of the alias column.",
+          "default": 5,
+          "minimum": 4,
+          "examples": [5, 8]
+        },
+        "name": {
+          "type": "integer",
+          "description": "Width in characters of the project name column; annotations (SSH URL, timestamp) align after this.",
+          "default": 32,
+          "minimum": 1,
+          "examples": [32, 50]
+        }
+      }
+    },
+    "aliases": {
+      "type": "object",
+      "description": "Map of short alias keys to real project names. The alias is used as the kitty tab title.",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "examples": [
+        {"kw": "kitty-meow", "km": "my-other-project"}
+      ]
+    },
+    "sets": {
+      "type": "array",
+      "description": "Named groups of projects that open together.",
+      "items": {
+        "type": "object",
+        "required": ["name", "projects"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Display name for the set."
+          },
+          "projects": {
+            "type": "array",
+            "description": "List of project names or paths to open.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "examples": [
+        [{"name": "work", "projects": ["api", "frontend", "infra"]}]
+      ]
+    },
+    "keybindings": {
+      "type": "object",
+      "description": "fzf key bindings for switching between project sources. Do not use ctrl-p or ctrl-n (reserved by fzf for navigation).",
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "type": "string",
+          "description": "Reload the default sources (as configured in default_sources).",
+          "default": "ctrl-a",
+          "examples": ["ctrl-a"]
+        },
+        "open": {
+          "type": "string",
+          "description": "Show currently open tabs.",
+          "default": "ctrl-o",
+          "examples": ["ctrl-o"]
+        },
+        "local": {
+          "type": "string",
+          "description": "Show local projects from dirs.",
+          "default": "ctrl-p",
+          "examples": ["ctrl-p"]
+        },
+        "remote": {
+          "type": "string",
+          "description": "Fetch and show GitHub remote repos.",
+          "default": "ctrl-g",
+          "examples": ["ctrl-g"]
+        },
+        "set": {
+          "type": "string",
+          "description": "Show configured project sets.",
+          "default": "ctrl-s",
+          "examples": ["ctrl-s"]
+        },
+        "history": {
+          "type": "string",
+          "description": "Show recently opened projects from history.",
+          "default": "ctrl-r",
+          "examples": ["ctrl-r"]
+        },
+        "close": {
+          "type": "string",
+          "description": "Show open tabs for closing (sorted least-recently-used first).",
+          "default": "ctrl-x",
+          "examples": ["ctrl-x"]
+        }
+      }
+    }
+  }
+}
